@@ -1,258 +1,364 @@
-# SISTEMA PAT — PROYECTO DE ACOMPAÑAMIENTO DE TRAYECTORIAS
+\# PIAT21 — Sistema de Acompañamiento de Trayectorias
 
-Autor: Folino Inc
-Versión: 1.0
-Fecha: 15/12/2025
-Plataforma: Google Workspace (Drive, Sheets, Forms, Apps Script)
 
-## Índice
-## 1. Introducción
-## 2. Objetivo del sistema
-## 3. Archivos que componen el sistema
-## 4. Estructura de Google Drive
-## 5. Estructura del Google Sheet Seleccion_PAT
-## 6. Google Form de inscripcin
-## 7. Apps Script (automatizacin)
-## 8. Dashboard para directivos
-## 9. Poltica de permisos
-## 10. Secuencia completa de funcionamiento
-## 11. Instalacin paso a paso
-## 12. Mantenimiento y operacin diaria
 
-## 1. INTRODUCCIN
+\## Descripción
 
-El Sistema PAT es una solucin integral desarrollada en Google Workspace
-para gestionar la asignacin de docentes tutores a alumnos, garantizando:
 
-- Cupos mximos por docente
-- Restricciones segn ciclo y especialidad
-- Registro automtico de alumnos
-- Generacin de archivos individuales
-- Control de permisos
-- Visualizacin en tiempo real para directivos
 
-El sistema est pensado para escuelas secundarias tcnicas
-con modalidad de 6 aos.
+\*\*PIAT21\*\* es un sistema desarrollado para apoyar la implementación y gestión del \*\*Proyecto Institucional de Acompañamiento de Trayectorias (PIAT)\*\* de la Escuela Técnica Nº 21 DE 10.
 
-## 2. OBJETIVO DEL SISTEMA
 
-- Permitir que los alumnos se inscriban mediante un Google Form
-- Asignar automticamente un docente segn reglas acadmicas
-- Limitar la cantidad de alumnos por docente (configurable)
-- Crear un archivo individual por alumno
-- Permitir que SOLO el docente asignado pueda editar
-- Brindar a directivos un dashboard en tiempo real
 
-## 3. ARCHIVOS QUE COMPONEN EL SISTEMA
+El sistema tiene como objetivo organizar y automatizar la asignación de \*\*docentes tutores a estudiantes\*\*, teniendo en cuenta el año de cursada, el ciclo y la especialidad, y permitiendo realizar un seguimiento centralizado de las trayectorias educativas.
 
-1. Google Sheet: Seleccion_PAT
-? Archivo central del sistema
 
-2. Google Sheet: Apellido_Nombre_xxx
-? Plantilla base del alumno (se copia automticamente)
 
-3. Google Form: Inscripcin PAT
-? Carga de datos del alumno
+La solución está desarrollada utilizando herramientas de \*\*Google Workspace\*\*, principalmente \*\*Google Forms, Google Sheets, Google Drive y Google Apps Script\*\*, integradas en un flujo automatizado.
 
-4. Apps Script (Code.gs)
-? Automatizacin completa del proceso
 
-5. HTML (dashboard.html)
-? Dashboard web para directivos
 
-6. Carpeta Drive: PAT
-? Almacenamiento de archivos individuales
+\## ¿Qué permite hacer?
 
-## 4. ESTRUCTURA DE GOOGLE DRIVE
+
+
+El sistema permite:
+
+
+
+\* Registrar estudiantes mediante un formulario institucional.
+
+\* Centralizar la información en una planilla de gestión.
+
+\* Configurar docentes tutores y los ciclos/especialidades que pueden atender.
+
+\* Establecer cupos máximos de estudiantes por docente.
+
+\* Asignar automáticamente un docente tutor según las reglas definidas.
+
+\* Generar y organizar automáticamente la documentación individual de cada estudiante.
+
+\* Administrar los permisos de acceso a la información.
+
+\* Registrar las asignaciones realizadas y las posibles incidencias.
+
+\* Proporcionar a los equipos directivos información actualizada para el seguimiento y supervisión.
+
+
+
+\## Flujo general
+
+
+
+El funcionamiento del sistema se basa en un proceso automatizado:
+
+
 
 ```text
-PAT/
- +-- A/
-     +-- Apellido_Nombre_123
-     +-- Apellido_Nombre_456
- +-- B/
- +-- C/
- +-- ...
- +-- Z/
+
+ESTUDIANTE
+
+&#x20;   │
+
+&#x20;   ▼
+
+GOOGLE FORM
+
+&#x20;   │
+
+&#x20;   ▼
+
+REGISTRO EN GOOGLE SHEETS
+
+&#x20;   │
+
+&#x20;   ▼
+
+APPS SCRIPT
+
+&#x20;   │
+
+&#x20;   ├──► Identificación de año y especialidad
+
+&#x20;   │
+
+&#x20;   ├──► Filtrado de docentes habilitados
+
+&#x20;   │
+
+&#x20;   ├──► Verificación de cupos
+
+&#x20;   │
+
+&#x20;   └──► Asignación del docente tutor
+
+&#x20;            │
+
+&#x20;            ▼
+
+&#x20;      GOOGLE DRIVE
+
+&#x20;            │
+
+&#x20;            ├──► Carpeta del estudiante
+
+&#x20;            └──► Archivo individual
+
+&#x20;            │
+
+&#x20;            ▼
+
+&#x20;      CONTROL DE PERMISOS
+
+&#x20;            │
+
+&#x20;            ▼
+
+&#x20;      DASHBOARD DIRECTIVO
 
 ```
-Reglas:
-- Una carpeta por letra del apellido
-- Un archivo por alumno
-- Nombre del archivo:
-Apellido_Nombre_ULTIMOS3DNI
 
-## 5. GOOGLE SHEET: Seleccion_PAT
 
-Este archivo contiene las siguientes hojas:
 
-### 5.1 Hoja: Config
+El proceso se inicia cuando el estudiante completa el formulario. El evento `onFormSubmit` activa el procesamiento automático: se analiza el año y la especialidad, se determinan los docentes que cumplen las condiciones, se verifican sus cupos disponibles y se realiza la asignación correspondiente.
 
-Contiene los parmetros globales del sistema.
 
-Columnas:
-A: Clave
-B: Valor
-C: Descripcin
 
-Claves utilizadas:
-- RUTA_RAIZ            ? ID carpeta PAT
-- ID_PLANTILLA        ? ID de Apellido_Nombre_xxx
-- MAX_POR_DEFECTO     ? Cupo por docente
-- SISTEMA_ACTIVO      ? TRUE / FALSE
+\## Componentes del sistema
 
-### 5.2 Hoja: Docentes
 
-Define los docentes disponibles y sus capacidades.
 
-Columnas:
-A: Nombre
-B: Email
-C: Ciclos (CB, CSC, CSM o combinaciones)
-D: Mx Alumnos (opcional)
+La arquitectura actual está compuesta por los siguientes elementos:
 
-Ejemplos:
-- `CB`
-CB,CSC
-CSC,CSM
 
-### 5.3 Hoja: Alumnos
 
-Registro final de asignaciones.
+| Componente               | Función                                                    |
 
-Columnas:
-A: Timestamp
-B: Email Alumno
-C: Apellido
-D: Nombre
-E: DNI
-F: Ao que cursa
-G: Especialidad
-H: Email Docente asignado
-I: URL archivo alumno
-J: URL carpeta alumno
+| ------------------------ | ---------------------------------------------------------- |
 
-### 5.4 Hoja: Errores
+| \*\*Google Form\*\*          | Registro de información de los estudiantes                 |
 
-Registro de incidencias.
+| \*\*Google Sheets\*\*        | Configuración, registro de estudiantes, docentes y errores |
 
-Columnas:
-Timestamp | Email Alumno | Motivo
+| \*\*Google Drive\*\*         | Almacenamiento y organización de la documentación          |
 
-## 6. GOOGLE FORM: INSCRIPCIN PAT
+| \*\*Apps Script\*\*          | Motor de automatización y asignación                       |
 
-El formulario contiene los siguientes campos:
+| \*\*Dashboard Web\*\*        | Visualización de información para los equipos directivos   |
 
-- Apellido del Estudiante
-- Nombre del Estudiante
-- DNI
-- Nacionalidad
-- Fecha de Nacimiento
-- Email institucional
-- Distrito
-- Municipalidad
-- Calle
-- Cdigo Postal
-- Nombre Tutor 1
-- Telfono Tutor 1
-- Email Tutor 1
-- Nombre Tutor 2
-- Telfono Tutor 2
-- Email Tutor 2
-- Ficha salud
-- Ao que cursa en la actualidad (1 a 6)
-- Especialidad:
-Ciclo Bsico
-Computacin
-Maestro Mayor de Obras
+| \*\*Plantilla individual\*\* | Base para la documentación de cada estudiante              |
 
-El Form debe estar vinculado al Sheet Seleccion_PAT.
 
-## 7. APPS SCRIPT (Code.gs)
 
-Responsabilidades del script:
+La información central se administra mediante el archivo \*\*`Seleccion\_PAT`\*\*, que contiene las configuraciones generales, los docentes disponibles, las asignaciones de estudiantes y el registro de incidencias.
 
-- Leer configuracin
-- Filtrar docentes segn:
-Ao (1 a 3 ? CB)
-Especialidad (CSC / CSM)
-- Verificar cupos disponibles
-- Seleccionar docente con menor carga
-- Crear carpeta por letra
-- Copiar plantilla del alumno
-- Completar datos automticamente
-- Asignar permisos:
-Docente: Editor
-Resto: Solo lectura
-- Registrar asignacin
-- Registrar errores si no hay cupo
 
-## 8. DASHBOARD PARA DIRECTIVOS
 
-Acceso va Web App (HTML + Apps Script).
+\## Organización de la información
 
-Muestra:
-- Docente
-- Ciclos que cubre
-- Alumnos asignados
-- Cupo mximo
-- Cupos restantes
 
-Acceso:
-- Solo lectura
-- En tiempo real
-- Ideal para supervisin
 
-## 9. POLTICA DE PERMISOS
+La documentación generada se organiza en Google Drive mediante una estructura basada en la inicial del apellido del estudiante:
 
-- Archivos de alumnos:
-Docente asignado ? Editor
-Otros docentes ? Lectura
-Directivos ? Editor
-Alumnos ? Sin acceso
 
-- Sheet Seleccion_PAT:
-Directivos ? Editor
-Sistema ? Editor
-Docentes ? Lectura
 
-## 10. SECUENCIA COMPLETA DE FUNCIONAMIENTO
+```text
 
-## 1. Alumno completa Google Form
-## 2. Se dispara onFormSubmit
-## 3. El sistema:
-- Lee ao y especialidad
-- Filtra docentes vlidos
-- Verifica cupos
-## 4. Selecciona docente
-## 5. Crea carpeta (si no existe)
-## 6. Copia plantilla del alumno
-## 7. Completa datos
-## 8. Asigna permisos
-## 9. Registra asignacin
-## 10. Actualiza dashboard
+PAT/
 
-## 11. INSTALACIN PASO A PASO
+├── A/
 
-## 1. Crear carpeta PAT en Drive
-## 2. Crear Google Sheet Seleccion_PAT
-## 3. Crear hoja Config y cargar valores
-## 4. Crear hoja Docentes
-## 5. Crear plantilla Apellido_Nombre_xxx
-## 6. Crear Google Form
-## 7. Vincular Form a Seleccion_PAT
-## 8. Abrir Apps Script y pegar Code.gs
-## 9. Crear trigger:
-- Evento: On form submit
-## 10. Crear archivo dashboard.html
-## 11. Publicar como Web App
+│   ├── Apellido\_Nombre\_123
 
-## 12. MANTENIMIENTO Y OPERACIN
+│   └── Apellido\_Nombre\_456
 
-- Para agregar docentes ? Hoja Docentes
-- Para cambiar cupos ? Hoja Docentes / Config
-- Para pausar sistema ? SISTEMA_ACTIVO = FALSE
-- Para auditora ? Hoja Alumnos / Errores
-- El sistema es escalable y reutilizable ao a ao
+├── B/
 
-FIN DEL DOCUMENTO
+├── C/
+
+├── ...
+
+└── Z/
+
+```
+
+
+
+Cada estudiante dispone de un archivo individual, identificado mediante su apellido, nombre y los últimos tres dígitos de su DNI.
+
+
+
+\## Asignación de docentes
+
+
+
+La asignación se realiza considerando:
+
+
+
+\* Año que cursa el estudiante.
+
+\* Ciclo correspondiente.
+
+\* Especialidad.
+
+\* Docentes habilitados para cada ciclo/especialidad.
+
+\* Cupo disponible de cada docente.
+
+
+
+El sistema contempla la posibilidad de definir un cupo general y, opcionalmente, un cupo específico para cada docente. Cuando existen varios docentes que cumplen las condiciones, el sistema selecciona aquel que presenta menor carga asignada.
+
+
+
+\## Gestión y seguimiento
+
+
+
+El sistema mantiene un registro centralizado de las asignaciones realizadas, incluyendo información del estudiante, docente asignado y enlaces a la documentación correspondiente.
+
+
+
+También dispone de un registro de errores o incidencias para identificar situaciones en las que, por ejemplo, no exista un docente disponible o no haya cupo suficiente.
+
+
+
+El \*\*dashboard para directivos\*\* permite consultar en tiempo real información como:
+
+
+
+\* Docentes.
+
+\* Ciclos que atiende cada docente.
+
+\* Cantidad de estudiantes asignados.
+
+\* Cupo máximo.
+
+\* Cupos disponibles.
+
+
+
+El acceso al dashboard está planteado en modalidad de \*\*solo lectura\*\*, facilitando las tareas de supervisión y seguimiento.
+
+
+
+\## Gestión de permisos
+
+
+
+El sistema contempla diferentes niveles de acceso según el rol:
+
+
+
+\* \*\*Docente asignado:\*\* edición del archivo del estudiante.
+
+\* \*\*Otros docentes:\*\* acceso de lectura.
+
+\* \*\*Directivos:\*\* acceso de gestión según corresponda.
+
+\* \*\*Estudiantes:\*\* sin acceso directo al archivo administrativo.
+
+
+
+De esta manera, se busca mantener organizada la información y limitar la edición de los registros a los usuarios correspondientes.
+
+
+
+\## Automatización
+
+
+
+Uno de los principales componentes del proyecto es \*\*Google Apps Script\*\*, que funciona como núcleo de automatización.
+
+
+
+Entre sus responsabilidades se encuentran:
+
+
+
+1\. Leer la configuración del sistema.
+
+2\. Procesar la información recibida desde el formulario.
+
+3\. Determinar los docentes compatibles.
+
+4\. Verificar los cupos disponibles.
+
+5\. Seleccionar el docente correspondiente.
+
+6\. Crear las carpetas necesarias en Drive.
+
+7\. Copiar la plantilla individual.
+
+8\. Completar automáticamente la información.
+
+9\. Aplicar los permisos correspondientes.
+
+10\. Registrar la asignación.
+
+11\. Registrar posibles errores.
+
+12\. Actualizar la información utilizada por el dashboard.
+
+
+
+\## Estructura del repositorio
+
+
+
+El repositorio se organiza, entre otros elementos, en las siguientes áreas:
+
+
+
+```text
+
+PIAT21/
+
+├── Documentación/
+
+├── Software/
+
+│   └── PAT/
+
+└── README.md
+
+```
+
+
+
+La carpeta \*\*Documentación\*\* concentra los materiales documentales del proyecto, mientras que \*\*Software/PAT\*\* contiene los componentes correspondientes a la implementación del sistema.
+
+
+
+\## Características principales
+
+
+
+En conjunto, PIAT21 busca proporcionar una herramienta:
+
+
+
+\* \*\*Centralizada\*\*, al concentrar la información en un sistema común.
+
+\* \*\*Automatizada\*\*, reduciendo tareas administrativas repetitivas.
+
+\* \*\*Configurable\*\*, permitiendo modificar docentes, ciclos y cupos.
+
+\* \*\*Trazable\*\*, mediante el registro de asignaciones e incidencias.
+
+\* \*\*Escalable\*\*, permitiendo reutilizar la estructura en nuevos ciclos lectivos.
+
+\* \*\*Orientada al seguimiento\*\*, facilitando a los equipos directivos la supervisión de las trayectorias.
+
+
+
+\## Estado del proyecto
+
+
+
+PIAT21 se encuentra organizado como un proyecto compuesto por documentación y software, con una implementación basada en servicios de Google Workspace. El diseño contempla la posibilidad de adaptar la configuración del sistema año a año sin modificar necesariamente su estructura general.
+
+
+

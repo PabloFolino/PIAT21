@@ -1,364 +1,490 @@
-\# PIAT21 — Sistema de Acompañamiento de Trayectorias
+# PIAT21
 
+## Sistema de Plan Institucional para el Acompañamiento de las Trayectorias
 
+**Escuela Técnica Nº 21 DE 10 — "Fragata Escuela Libertad"**
 
-\## Descripción
+---
 
+## 📌 Descripción
 
+**PIAT21** es un sistema desarrollado para acompañar la implementación y gestión del **Plan Institucional para el Acompañamiento de las Trayectorias (PIAT)** de la Escuela Técnica Nº 21 DE 10.
 
-\*\*PIAT21\*\* es un sistema desarrollado para apoyar la implementación y gestión del \*\*Proyecto Institucional de Acompañamiento de Trayectorias (PIAT)\*\* de la Escuela Técnica Nº 21 DE 10.
+El proyecto integra una propuesta institucional de acompañamiento con una solución tecnológica destinada a **organizar, automatizar y centralizar la asignación de docentes tutores y el seguimiento de los estudiantes**.
 
+La implementación tecnológica utiliza herramientas de **Google Workspace**, integrando:
 
+* Google Forms
+* Google Sheets
+* Google Drive
+* Google Apps Script
+* HTML para el dashboard de gestión
 
-El sistema tiene como objetivo organizar y automatizar la asignación de \*\*docentes tutores a estudiantes\*\*, teniendo en cuenta el año de cursada, el ciclo y la especialidad, y permitiendo realizar un seguimiento centralizado de las trayectorias educativas.
+El repositorio reúne tanto la **documentación del proyecto** como el **software desarrollado para su implementación**.
 
+---
 
+## 🎯 Objetivos
 
-La solución está desarrollada utilizando herramientas de \*\*Google Workspace\*\*, principalmente \*\*Google Forms, Google Sheets, Google Drive y Google Apps Script\*\*, integradas en un flujo automatizado.
+El sistema busca facilitar la gestión institucional de las trayectorias educativas mediante:
 
+* Registro centralizado de estudiantes.
+* Asignación de docentes tutores.
+* Organización de los docentes según ciclos y especialidades.
+* Administración de cupos por docente.
+* Automatización de tareas administrativas.
+* Generación y organización de documentación individual.
+* Gestión diferenciada de permisos de acceso.
+* Seguimiento de las asignaciones realizadas.
+* Registro de incidencias.
+* Visualización de información para los equipos directivos.
 
+---
 
-\## ¿Qué permite hacer?
+## 🏫 Contexto institucional
 
+El sistema está pensado para el contexto de una **escuela secundaria técnica de seis años**, contemplando la organización por ciclos y especialidades.
 
+La asignación de docentes tiene en cuenta, entre otros parámetros:
 
-El sistema permite:
+* Año que cursa el estudiante.
+* Ciclo correspondiente.
+* Especialidad.
+* Docentes disponibles.
+* Cupo máximo de cada docente.
 
+De esta manera, el sistema permite automatizar parte del proceso de organización del acompañamiento de las trayectorias.
 
+---
 
-\* Registrar estudiantes mediante un formulario institucional.
+# ⚙️ Arquitectura del sistema
 
-\* Centralizar la información en una planilla de gestión.
-
-\* Configurar docentes tutores y los ciclos/especialidades que pueden atender.
-
-\* Establecer cupos máximos de estudiantes por docente.
-
-\* Asignar automáticamente un docente tutor según las reglas definidas.
-
-\* Generar y organizar automáticamente la documentación individual de cada estudiante.
-
-\* Administrar los permisos de acceso a la información.
-
-\* Registrar las asignaciones realizadas y las posibles incidencias.
-
-\* Proporcionar a los equipos directivos información actualizada para el seguimiento y supervisión.
-
-
-
-\## Flujo general
-
-
-
-El funcionamiento del sistema se basa en un proceso automatizado:
-
-
+El funcionamiento general puede representarse de la siguiente manera:
 
 ```text
-
-ESTUDIANTE
-
-&#x20;   │
-
-&#x20;   ▼
-
-GOOGLE FORM
-
-&#x20;   │
-
-&#x20;   ▼
-
-REGISTRO EN GOOGLE SHEETS
-
-&#x20;   │
-
-&#x20;   ▼
-
-APPS SCRIPT
-
-&#x20;   │
-
-&#x20;   ├──► Identificación de año y especialidad
-
-&#x20;   │
-
-&#x20;   ├──► Filtrado de docentes habilitados
-
-&#x20;   │
-
-&#x20;   ├──► Verificación de cupos
-
-&#x20;   │
-
-&#x20;   └──► Asignación del docente tutor
-
-&#x20;            │
-
-&#x20;            ▼
-
-&#x20;      GOOGLE DRIVE
-
-&#x20;            │
-
-&#x20;            ├──► Carpeta del estudiante
-
-&#x20;            └──► Archivo individual
-
-&#x20;            │
-
-&#x20;            ▼
-
-&#x20;      CONTROL DE PERMISOS
-
-&#x20;            │
-
-&#x20;            ▼
-
-&#x20;      DASHBOARD DIRECTIVO
-
+                         PIAT21
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   Google Form   │
+                  │   Inscripción   │
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │  Google Sheets  │
+                  │ Seleccion_PAT    │
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   Apps Script   │
+                  │   Motor lógico  │
+                  └────────┬────────┘
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+              ▼            ▼            ▼
+        Filtrar       Verificar     Seleccionar
+        docentes        cupos         docente
+              │            │            │
+              └────────────┼────────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │   Google Drive  │
+                  │ Documentación   │
+                  └────────┬────────┘
+                           │
+                           ▼
+                  ┌─────────────────┐
+                  │    Dashboard    │
+                  │   Directivos    │
+                  └─────────────────┘
 ```
 
+---
 
+# 🧩 Componentes principales
 
-El proceso se inicia cuando el estudiante completa el formulario. El evento `onFormSubmit` activa el procesamiento automático: se analiza el año y la especialidad, se determinan los docentes que cumplen las condiciones, se verifican sus cupos disponibles y se realiza la asignación correspondiente.
+## Google Form
 
+Es el punto de entrada de información al sistema.
 
+Permite registrar los datos necesarios del estudiante para iniciar el proceso de asignación.
 
-\## Componentes del sistema
+Entre los datos contemplados se encuentran:
 
+* Apellido y nombre.
+* DNI.
+* Nacionalidad.
+* Fecha de nacimiento.
+* Correo institucional.
+* Datos de contacto.
+* Información de los responsables.
+* Año que cursa.
+* Especialidad.
 
+El formulario se encuentra vinculado al archivo central `Seleccion_PAT`.
 
-La arquitectura actual está compuesta por los siguientes elementos:
+---
 
+## Google Sheets
 
+El archivo **`Seleccion_PAT`** constituye el núcleo de información del sistema.
 
-| Componente               | Función                                                    |
+Contiene diferentes hojas destinadas a configurar y registrar el funcionamiento:
 
-| ------------------------ | ---------------------------------------------------------- |
+### `Config`
 
-| \*\*Google Form\*\*          | Registro de información de los estudiantes                 |
+Contiene los parámetros generales del sistema.
 
-| \*\*Google Sheets\*\*        | Configuración, registro de estudiantes, docentes y errores |
+Entre ellos:
 
-| \*\*Google Drive\*\*         | Almacenamiento y organización de la documentación          |
+| Parámetro         | Función                                       |
+| ----------------- | --------------------------------------------- |
+| `RUTA_RAIZ`       | Identificación de la carpeta principal de PAT |
+| `ID_PLANTILLA`    | Identificación de la plantilla utilizada      |
+| `MAX_POR_DEFECTO` | Cupo general por docente                      |
+| `SISTEMA_ACTIVO`  | Activación o pausa del sistema                |
 
-| \*\*Apps Script\*\*          | Motor de automatización y asignación                       |
+### `Docentes`
 
-| \*\*Dashboard Web\*\*        | Visualización de información para los equipos directivos   |
+Contiene la información de los docentes disponibles y su capacidad de atención.
 
-| \*\*Plantilla individual\*\* | Base para la documentación de cada estudiante              |
+Se registran:
 
+* Nombre.
+* Correo electrónico.
+* Ciclos que puede atender.
+* Máximo de alumnos, cuando corresponde.
 
+### `Alumnos`
 
-La información central se administra mediante el archivo \*\*`Seleccion\_PAT`\*\*, que contiene las configuraciones generales, los docentes disponibles, las asignaciones de estudiantes y el registro de incidencias.
+Registra las asignaciones realizadas por el sistema.
 
+Incluye información como:
 
+* Fecha y hora.
+* Datos del estudiante.
+* Año.
+* Especialidad.
+* Docente asignado.
+* Enlace al archivo individual.
+* Enlace a la carpeta correspondiente.
 
-\## Organización de la información
+### `Errores`
 
+Permite registrar las incidencias producidas durante el procesamiento.
 
+---
 
-La documentación generada se organiza en Google Drive mediante una estructura basada en la inicial del apellido del estudiante:
+# 🤖 Automatización mediante Apps Script
 
+El componente central de automatización es **Google Apps Script**.
 
+El procesamiento se inicia mediante el evento:
+
+```javascript
+onFormSubmit
+```
+
+A partir de la recepción de una nueva inscripción, el sistema:
+
+1. Lee la información del estudiante.
+2. Determina el año y la especialidad.
+3. Filtra los docentes compatibles.
+4. Verifica los cupos disponibles.
+5. Selecciona el docente correspondiente.
+6. Crea la carpeta necesaria en Google Drive.
+7. Copia la plantilla individual.
+8. Completa automáticamente los datos.
+9. Configura los permisos.
+10. Registra la asignación.
+11. Registra posibles errores.
+12. Actualiza la información utilizada por el dashboard.
+
+---
+
+# 👨‍🏫 Asignación de docentes
+
+La asignación se realiza mediante reglas configurables.
+
+Para cada estudiante se consideran las condiciones correspondientes a su trayectoria:
 
 ```text
+Año
+ │
+ ├── 1º
+ ├── 2º
+ └── 3º
+       │
+       ▼
+   Ciclo Básico
+```
 
+y, para los años correspondientes:
+
+```text
+Especialidad
+ │
+ ├── Computación
+ └── Maestro Mayor de Obras
+```
+
+El sistema filtra los docentes que cumplen las condiciones y posteriormente verifica la disponibilidad de cupos.
+
+Cuando existen docentes compatibles, se contempla la selección del docente con **menor carga asignada**, de acuerdo con las reglas definidas en el sistema.
+
+---
+
+# 📁 Organización de Google Drive
+
+La documentación individual se organiza dentro de una carpeta principal:
+
+```text
 PAT/
-
+│
 ├── A/
-
-│   ├── Apellido\_Nombre\_123
-
-│   └── Apellido\_Nombre\_456
-
+│   ├── Apellido_Nombre_123
+│   └── Apellido_Nombre_456
+│
 ├── B/
-
 ├── C/
-
 ├── ...
-
 └── Z/
-
 ```
 
+La organización contempla:
 
+* Una carpeta asociada a cada inicial del apellido.
+* Un archivo individual por estudiante.
+* Una nomenclatura basada en apellido, nombre y los últimos tres dígitos del DNI.
 
-Cada estudiante dispone de un archivo individual, identificado mediante su apellido, nombre y los últimos tres dígitos de su DNI.
-
-
-
-\## Asignación de docentes
-
-
-
-La asignación se realiza considerando:
-
-
-
-\* Año que cursa el estudiante.
-
-\* Ciclo correspondiente.
-
-\* Especialidad.
-
-\* Docentes habilitados para cada ciclo/especialidad.
-
-\* Cupo disponible de cada docente.
-
-
-
-El sistema contempla la posibilidad de definir un cupo general y, opcionalmente, un cupo específico para cada docente. Cuando existen varios docentes que cumplen las condiciones, el sistema selecciona aquel que presenta menor carga asignada.
-
-
-
-\## Gestión y seguimiento
-
-
-
-El sistema mantiene un registro centralizado de las asignaciones realizadas, incluyendo información del estudiante, docente asignado y enlaces a la documentación correspondiente.
-
-
-
-También dispone de un registro de errores o incidencias para identificar situaciones en las que, por ejemplo, no exista un docente disponible o no haya cupo suficiente.
-
-
-
-El \*\*dashboard para directivos\*\* permite consultar en tiempo real información como:
-
-
-
-\* Docentes.
-
-\* Ciclos que atiende cada docente.
-
-\* Cantidad de estudiantes asignados.
-
-\* Cupo máximo.
-
-\* Cupos disponibles.
-
-
-
-El acceso al dashboard está planteado en modalidad de \*\*solo lectura\*\*, facilitando las tareas de supervisión y seguimiento.
-
-
-
-\## Gestión de permisos
-
-
-
-El sistema contempla diferentes niveles de acceso según el rol:
-
-
-
-\* \*\*Docente asignado:\*\* edición del archivo del estudiante.
-
-\* \*\*Otros docentes:\*\* acceso de lectura.
-
-\* \*\*Directivos:\*\* acceso de gestión según corresponda.
-
-\* \*\*Estudiantes:\*\* sin acceso directo al archivo administrativo.
-
-
-
-De esta manera, se busca mantener organizada la información y limitar la edición de los registros a los usuarios correspondientes.
-
-
-
-\## Automatización
-
-
-
-Uno de los principales componentes del proyecto es \*\*Google Apps Script\*\*, que funciona como núcleo de automatización.
-
-
-
-Entre sus responsabilidades se encuentran:
-
-
-
-1\. Leer la configuración del sistema.
-
-2\. Procesar la información recibida desde el formulario.
-
-3\. Determinar los docentes compatibles.
-
-4\. Verificar los cupos disponibles.
-
-5\. Seleccionar el docente correspondiente.
-
-6\. Crear las carpetas necesarias en Drive.
-
-7\. Copiar la plantilla individual.
-
-8\. Completar automáticamente la información.
-
-9\. Aplicar los permisos correspondientes.
-
-10\. Registrar la asignación.
-
-11\. Registrar posibles errores.
-
-12\. Actualizar la información utilizada por el dashboard.
-
-
-
-\## Estructura del repositorio
-
-
-
-El repositorio se organiza, entre otros elementos, en las siguientes áreas:
-
-
+Ejemplo:
 
 ```text
-
-PIAT21/
-
-├── Documentación/
-
-├── Software/
-
-│   └── PAT/
-
-└── README.md
-
+Apellido_Nombre_123
 ```
 
+---
 
+# 📊 Dashboard para equipos directivos
 
-La carpeta \*\*Documentación\*\* concentra los materiales documentales del proyecto, mientras que \*\*Software/PAT\*\* contiene los componentes correspondientes a la implementación del sistema.
+El sistema incorpora un **dashboard web** desarrollado mediante HTML y Apps Script.
 
+Su finalidad es facilitar la supervisión del estado de las asignaciones.
 
+La información contempla:
 
-\## Características principales
+* Docentes.
+* Ciclos atendidos.
+* Cantidad de alumnos asignados.
+* Cupo máximo.
+* Cupos disponibles.
 
+El dashboard está planteado para consulta y supervisión en tiempo real.
 
+---
 
-En conjunto, PIAT21 busca proporcionar una herramienta:
+# 🔐 Gestión de permisos
 
+El sistema contempla diferentes niveles de acceso según el rol de cada usuario.
 
+### Archivos de estudiantes
 
-\* \*\*Centralizada\*\*, al concentrar la información en un sistema común.
+| Usuario          | Permiso    |
+| ---------------- | ---------- |
+| Docente asignado | Editor     |
+| Otros docentes   | Lectura    |
+| Directivos       | Editor     |
+| Estudiantes      | Sin acceso |
 
-\* \*\*Automatizada\*\*, reduciendo tareas administrativas repetitivas.
+### Archivo `Seleccion_PAT`
 
-\* \*\*Configurable\*\*, permitiendo modificar docentes, ciclos y cupos.
+| Usuario    | Permiso |
+| ---------- | ------- |
+| Directivos | Editor  |
+| Sistema    | Editor  |
+| Docentes   | Lectura |
 
-\* \*\*Trazable\*\*, mediante el registro de asignaciones e incidencias.
+Esta estructura busca mantener diferenciados los permisos de gestión, edición y consulta.
 
-\* \*\*Escalable\*\*, permitiendo reutilizar la estructura en nuevos ciclos lectivos.
+---
 
-\* \*\*Orientada al seguimiento\*\*, facilitando a los equipos directivos la supervisión de las trayectorias.
+# 🔄 Flujo completo
 
+El proceso general puede resumirse de la siguiente manera:
 
+```text
+1. El estudiante completa el formulario
+                │
+                ▼
+2. Se registra la información
+                │
+                ▼
+3. Se ejecuta onFormSubmit
+                │
+                ▼
+4. Se analiza año y especialidad
+                │
+                ▼
+5. Se filtran docentes compatibles
+                │
+                ▼
+6. Se verifican los cupos
+                │
+                ▼
+7. Se asigna el docente
+                │
+                ▼
+8. Se crea la estructura en Drive
+                │
+                ▼
+9. Se copia la plantilla
+                │
+                ▼
+10. Se completan los datos
+                │
+                ▼
+11. Se asignan permisos
+                │
+                ▼
+12. Se registra la asignación
+                │
+                ▼
+13. Se actualiza el dashboard
+```
 
-\## Estado del proyecto
+---
 
+# 📚 Estructura del repositorio
 
+El repositorio está organizado en dos áreas principales:
 
-PIAT21 se encuentra organizado como un proyecto compuesto por documentación y software, con una implementación basada en servicios de Google Workspace. El diseño contempla la posibilidad de adaptar la configuración del sistema año a año sin modificar necesariamente su estructura general.
+```text
+PIAT21/
+│
+├── Documentación/
+│
+├── Software/
+│   └── PAT/
+│
+└── README.md
+```
 
+### `Documentación/`
 
+Contiene la documentación relacionada con el proyecto y su funcionamiento.
 
+### `Software/PAT/`
+
+Contiene los componentes correspondientes a la implementación del Sistema PAT.
+
+### `README.md`
+
+Documento principal del repositorio y punto de entrada para comprender el proyecto.
+
+---
+
+# 🛠️ Tecnologías utilizadas
+
+| Tecnología             | Utilización                          |
+| ---------------------- | ------------------------------------ |
+| **Google Forms**       | Registro de estudiantes              |
+| **Google Sheets**      | Base de datos y configuración        |
+| **Google Drive**       | Organización de documentación        |
+| **Google Apps Script** | Automatización y lógica del sistema  |
+| **HTML**               | Interfaz del dashboard               |
+| **GitHub**             | Control y documentación del proyecto |
+
+---
+
+# 🔧 Instalación y configuración
+
+La implementación requiere configurar inicialmente el entorno de Google Workspace.
+
+El proceso general comprende:
+
+1. Crear la carpeta principal `PAT` en Google Drive.
+2. Crear el archivo `Seleccion_PAT`.
+3. Configurar la hoja `Config`.
+4. Configurar la hoja `Docentes`.
+5. Crear la plantilla individual.
+6. Crear el Google Form.
+7. Vincular el formulario con `Seleccion_PAT`.
+8. Configurar Apps Script.
+9. Crear el disparador `On form submit`.
+10. Configurar el dashboard.
+11. Publicar el dashboard como Web App.
+
+La documentación detallada de instalación y operación se encuentra dentro del repositorio.
+
+---
+
+# 🔄 Mantenimiento
+
+La configuración del sistema permite realizar modificaciones sin alterar su estructura general.
+
+Entre las tareas habituales se encuentran:
+
+* Agregar o modificar docentes.
+* Modificar cupos.
+* Cambiar parámetros generales.
+* Activar o pausar el sistema.
+* Consultar asignaciones.
+* Revisar incidencias.
+* Realizar tareas de auditoría.
+
+Por ejemplo, para pausar el sistema se puede utilizar:
+
+```text
+SISTEMA_ACTIVO = FALSE
+```
+
+---
+
+# 📈 Características del sistema
+
+PIAT21 está diseñado con los siguientes principios:
+
+* **Centralización** de la información.
+* **Automatización** de tareas administrativas.
+* **Configurabilidad** de docentes y cupos.
+* **Trazabilidad** de las asignaciones.
+* **Control de acceso** a la información.
+* **Supervisión institucional** mediante dashboard.
+* **Escalabilidad** para su reutilización en distintos ciclos lectivos.
+
+---
+
+# 📖 Documentación
+
+La documentación del proyecto se encuentra organizada dentro del repositorio.
+
+Se recomienda comenzar por:
+
+* 📁 [`Documentación/`](Documentación/)
+* 📁 [`Software/PAT/`](Software/PAT/)
+* 📄 [`README.md`](README.md)
+
+---
+
+# 👤 Autor
+
+**Folino Inc**
+
+**PIAT21 — Escuela Técnica Nº 21 DE 10**
+
+---
+
+## 📌 Estado del proyecto
+
+**Versión:** 1.0
+**Fecha:** 15/12/2025
+**Plataforma:** Google Workspace
+**Repositorio:** [PabloFolino/PIAT21](https://github.com/PabloFolino/PIAT21)
+
+---
+
+> **PIAT21** integra organización institucional y automatización tecnológica para facilitar el acompañamiento y seguimiento de las trayectorias educativas.

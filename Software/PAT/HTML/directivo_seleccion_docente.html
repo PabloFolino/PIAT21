@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:disabled {
+      background: #b0b0b0;
+      cursor: not-allowed;
+    }
+
+    button:hover {
+      background: #125ca1;
+    }
+
+    button:disabled:hover {
+      background: #b0b0b0;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .error {
+      font-size: 1.3em;      /* ← acá agrandás el texto */
+      color: #c62828; }
+    .ok {
+      font-size: 1.3em;      /* ← acá agrandás el texto */
+      color: #2e7d32; }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: auto !important;
+      min-width: unset !important;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*==========================================================*/
+
+    .fila-datos {
+      display: flex;
+      gap: 16px;          /* espacio entre campos */
+      align-items: flex-end;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo select,
+    .campo input {
+      min-width: 150px;
+    }
+
+
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>Selección de Docente PAT</h1>
+
+  <h3>Datos cargados</h3> 
+  <div class="grupo">
+<div class="fila-datos">
+  <div class="campo">
+    <label for="anio">Año</label>
+    <select id="anio"></select>
+  </div>
+
+  <div class="campo">
+    <label for="turno">Turno</label>
+    <select id="turno"></select>
+  </div>
+
+  <div class="campo">
+    <label for="especialidad">Especialidad</label>
+    <select id="especialidad"></select>
+  </div>
+</div>
+
+  </div>
+
+  <button onclick="buscarDocentes()"> 1-Buscar docentes disponibles</button>
+
+  <!-- DOCENTES -->
+  <label>Docente disponible *</label>
+  <select id="docente">
+    <option value="">-- Seleccionar docente --</option>
+  </select>
+
+  <button onclick="confirmarSeleccion()">2-Confirmar selección</button>
+  <button id="btnGenerarLegajo" disabled onclick="generarLegajo()">
+  3-Generar Legajo
+  </button>
+
+  <button id="btnFinalizar" disabled onclick="finalizarInscripcion()">
+     4-Finalizar inscripción
+  </button>
+
+  <hr class="divider">
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+  <div id="msg2" class="msg"></div>
+  <div id="msgFinal" class="msg"></div>
+
+</div>
+
+<script>
+  const selDocente = document.getElementById("docente");
+  let msg;
+
+  function buscarDocentes() {
+    msg = document.getElementById("msg");
+    const turno = document.getElementById("turno").value;
+    const especialidad = document.getElementById("especialidad").value;
+    const anio = document.getElementById("anio").value;
+
+    if (!turno || !especialidad || !anio) {
+      msg.innerHTML = `<div class="error">Completá turno, especialidad y año</div>`;
+      return;
+    }
+
+    selDocente.innerHTML = `<option>Cargando docentes...</option>`;
+    msg.innerHTML = "";
+
+    google.script.run
+      .withSuccessHandler(docentes => {
+
+        selDocente.innerHTML =
+          `<option value="">-- Seleccionar docente --</option>`;
+
+        if (!docentes || docentes.length === 0) {
+          msg.innerHTML =
+            `<div class="error">No hay docentes disponibles para ese criterio</div>`;
+          return;
+        }
+
+        docentes.forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.nombre;
+          opt.textContent =
+            `${d.nombre} | Cupos disponibles: ${d.vacantes_disponibles}`;
+          selDocente.appendChild(opt);
+        });
+
+        // ✅ MENSAJE PASO 1
+        msg.innerHTML = `<div class="ok">1- Docentes cargados</div>`;
+
+      })
+      .withFailureHandler(err => {
+        msg.innerHTML = `<div class="error">${err.message}</div>`;
+      })
+      .getDocentesDisponibles(turno, especialidad);
+  }
+
+  function confirmarSeleccion() {
+    msg = document.getElementById("msg");
+    const docente = selDocente.value;
+
+    if (!docente) {
+      msg.innerHTML = `<div class="error">Seleccioná un docente</div>`;
+      return;
+    }
+
+    msg2.innerHTML = "Guardando selección...";
+
+    google.script.run
+      .withSuccessHandler(r => {
+        if (r.ok) {
+           msg2.innerHTML = `<div class="ok">2- ${r.mensaje}</div>`;
+
+          // ✅ habilitar Generar Legajo
+          document.getElementById("btnGenerarLegajo").disabled = false;
+        } else {
+          msg.innerHTML = `<div class="error">${r.mensaje}</div>`;
+        }
+      })
+      .withFailureHandler(err => {
+        msg.innerHTML = `<div class="error">${err.message}</div>`;
+      })
+      .guardarSeleccionDocente(docente);
+  }
+
+  function generarLegajo() {
+    const msgFinal = document.getElementById("msgFinal");
+
+    msgFinal.innerHTML = "Generando inscripción...";
+
+    google.script.run
+      .withSuccessHandler(r => {
+        if (r.ok) {
+          msgFinal.innerHTML = `
+            <div class="ok">
+              3- Legajo generado correctamente.<br>
+              Tocá el botón <strong>4-Finalizar inscripción</strong> para volver al inicio.
+            </div>
+          `;
+          // 🔒 desactivar botón para evitar doble click
+          document.getElementById("btnGenerarLegajo").disabled = true;
+
+          // ✅ habilitar finalizar
+          document.getElementById("btnFinalizar").disabled = false;
+        } else {
+          msgFinal.innerHTML = `<div class="error">${r.mensaje}</div>`;
+        }
+      })
+      .withFailureHandler(err => {
+        msgFinal.innerHTML = `<div class="error">${err.message}</div>`;
+      })
+      .submitInscripcion();
+  }
+
+  function finalizarInscripcion() {
+    volverPagina("directivo");
+  }
+
+  /*===========   Cargar datos desde Ficha_Alumno y bloquea campos =====================*/
+    function bloquearCampo(id, valor) {
+      const campo = document.getElementById(id);
+
+      // limpiar opciones
+      campo.innerHTML = "";
+
+      // crear option única
+      const opt = document.createElement("option");
+      opt.value = valor;
+      opt.textContent = valor;
+      opt.selected = true;
+
+      campo.appendChild(opt);
+
+      campo.disabled = true;
+      campo.style.background = "#eee";
+    }
+
+    function cargarDatosAlumno() {
+
+      // DEBUG
+      google.script.run
+        .withSuccessHandler(users => {
+          console.log("UserProperties:", users);
+          console.log("User Real:", users.userReal);
+          console.log("User dni:", users.dni);
+        })
+        .debugAlumnoActivo();
+
+      // DATOS DEL ALUMNO PARA SACAR ANIO, TURNO Y ESPECIALIDAD
+      google.script.run
+        .withSuccessHandler(datos => {
+          console.log("Datos recibidos del alumno:", datos);
+
+          if (!datos) {
+            alert("No se pudo obtener datos del alumno activo");
+            return;
+          }
+
+          bloquearCampo("anio", datos.anio || "");
+          bloquearCampo("turno", datos.turno || "");
+          bloquearCampo("especialidad", datos.especialidad || "");
+        })
+        .withFailureHandler(err => {
+          alert("Error al cargar datos del alumno: " + err.message);
+        })
+        .obtenerDatosAlumnoActualAnioTurnoEsp();
+    }
+
+
+    window.addEventListener("load", cargarDatosAlumno);
+    
+    /*=============== Boton volver ===========================*/
+    function volverPagina(page) {
+      google.script.run
+        .withSuccessHandler(url => {
+           window.top.location.href = url + "?page=" + page;
+        })
+        .withFailureHandler(err => {
+          alert("Error al volver: " + err.message);
+        })
+        .getBaseUrl();
+    }
+    /*========================================================*/
+
+</script>
+<button class="btn-volver" onclick="volverPagina('directivo_ficha_alumno')">⟵ Volver</button>
+</body>
+</html>
+
+

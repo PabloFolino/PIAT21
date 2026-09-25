@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:disabled {
+      background: #b0b0b0;
+      cursor: not-allowed;
+    }
+
+    button:hover {
+      background: #125ca1;
+    }
+
+    button:disabled:hover {
+      background: #b0b0b0;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .error {
+      font-size: 1.3em;      /* ← acá agrandás el texto */
+      color: #c62828; }
+    .ok {
+      font-size: 1.3em;      /* ← acá agrandás el texto */
+      color: #2e7d32; }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: auto !important;
+      min-width: unset !important;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*==========================================================*/
+
+    .fila-datos {
+      display: flex;
+      gap: 16px;          /* espacio entre campos */
+      align-items: flex-end;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .campo select,
+    .campo input {
+      min-width: 150px;
+    }
+
+
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>Borra los alumnos de la base de datos</h1>
+
+
+
+  </div>
+
+
+  <hr class="divider">
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+
+
+</div>
+
+<script>
+
+    
+    /*=============== Boton volver ===========================*/
+    function volverPagina(page) {
+      google.script.run
+        .withSuccessHandler(url => {
+           window.top.location.href = url + "?page=" + page;
+        })
+        .withFailureHandler(err => {
+          alert("Error al volver: " + err.message);
+        })
+        .getBaseUrl();
+    }
+    /*========================================================*/
+
+</script>
+<button class="btn-volver" onclick="volverPagina('directivo')">⟵ Volver</button>
+</body>
+</html>
+
+

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        padding: 30px;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      form {
+        max-width: 800px;
+        margin: auto;
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+      }
+
+      .grupo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      label {
+        font-size: 14px;
+        font-weight: bold;
+      }
+
+      input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        margin-top: 4px;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      button {
+        padding: 12px 20px;
+        font-size: 16px;
+        background: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      .msg {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+      }
+
+      /*=============== Boton volver =========================== */
+      .btn-volver {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+
+        width: auto !important;
+        min-width: unset !important;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        background-color: #1976d2;
+        color: white;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        z-index: 9999;
+      }
+      /*=====================================================*/
+
+      .btn-volver:hover {
+        background-color: #125aa0;
+      }
+      /*==========================================================*/
+
+      /*=============== Boton Siguiente =========================== */
+      /* Estilo para botón Siguiente */
+      #btnSiguiente {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background-color: #1976d2; /* azul por defecto */
+        color: white;
+        transition: background-color 0.3s;
+      }
+
+      /* Cuando el botón está deshabilitado */
+      #btnSiguiente:disabled {
+        background-color: #aaa;  /* gris */
+        cursor: not-allowed;     /* cambia el cursor */
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <h2>Ficha del Alumno</h2>
+
+    <form id="formAlumno">
+
+      <!-- ================= DATOS ALUMNO ================= -->
+      <h3>Datos del Alumno (obligatorio)</h3>
+
+      <div class="grupo">
+        <div>
+          <label>Apellido *</label>
+          <input id="apellido"name="apellido" required
+          placeholder="Ingrese apellido del alumno">
+        </div>
+
+        <div>
+          <label>Nombre *</label>
+          <input id="nombre" name="nombre" required
+          placeholder="Ingrese nombre del alumno">
+        </div>
+
+        <div>
+          <label>DNI *</label>
+          <input id="dni" name="dni" required
+          placeholder="Ingrese DNI o Pasaporte del alumno">
+        </div>
+
+        <div>
+          <label>Nacionalidad *</label>
+          <input id="nacionalidad" name="nacionalidad" required
+          placeholder="Ingrese nacionalidad del alumno">
+        </div>
+
+        <div>
+          <label>Fecha de Nacimiento (DD/MM/AAAA) *</label>
+          <input id="fechaNacimiento" name="fechaNacimiento" required
+          placeholder="Ingrese fecha de nacimiento del alumno">
+        </div>
+
+        <div>
+          <label>Distrito (Ej: CABA, Pcia de BsAs) *</label>
+          <input id="distrito" name="distrito" required>
+        </div>
+
+        <div>
+          <label>Municipio (Ej: CGP12, San Isidro) *</label>
+          <input id="municipio" name="municipio" required>
+        </div>
+
+        <div>
+          <label>Calle (Ej: Colombres 1435) *</label>
+          <input id="calle" name="calle" required>
+        </div>        
+
+        <div>
+          <label>Codigo Postal (Ej: 1430) *</label>
+          <input id="cp" name="cp" required>
+        </div> 
+
+        <div>
+          <label>                     </label>
+        </div> 
+
+        <div>
+          <label>Email institucional *</label>
+          <input id="email" name="email" required
+          placeholder="El formato debe ser apellido.nombre.et21.26@gmail.com">
+        </div>
+
+        <div>
+          <label>Email ALU *</label>
+          <input id="emailALU" name="emailALU" required>
+        </div>
+
+        <div>
+          <label>Año que cursa actualmente *</label>
+          <select id="anio" name="anio" required>
+            <option value="">-- Seleccionar --</option>
+            <option value="1">1°</option>
+            <option value="2">2°</option>
+            <option value="3">3°</option>
+            <option value="4">4°</option>
+            <option value="5">5°</option>
+            <option value="6">6°</option>
+          </select>
+        </div>
+
+        <div>
+          <label>División que cursa actualmente *</label>
+          <select id="div" name="div" required>
+            <option value="">-- Seleccionar --</option>
+            <option value="1">1°</option>
+            <option value="2">2°</option>
+            <option value="3">3°</option>
+            <option value="4">4°</option>
+            <option value="5">5°</option>
+            <option value="6">6°</option>
+            <option value="7">7°</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Turno *</label>
+          <select id="turno" name="turno" required>
+            <option value="">Seleccione</option>
+            <option value="TD">Turno Diurno</option>
+            <option value="TN">Turno Nocturno</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Especialidad *</label>
+          <select id="especialidad" name="especialidad" required>
+            <option value="">Seleccione</option>
+            <option value="CB">Ciclo Básico</option>
+            <option value="CSC">Ciclo Superior Computación</option>
+            <option value="CSM">Ciclo Superior MMO</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ================= TUTOR 1 ================= -->
+      <h3>Tutor 1 (obligatorio)</h3>
+
+      <div class="grupo">
+        <div>
+          <label>Nombre *</label>
+          <input id="tutor1Nombre" name="tutor1Nombre" required>
+        </div>
+
+        <div>
+          <label>Apellido *</label>
+          <input id="tutor1Apellido" name="tutor1Apellido" required>
+        </div>
+
+        <div>
+          <label>Teléfono *</label>
+          <input id="tutor1Tel" name="tutor1Tel" required>
+        </div>
+
+        <div>
+          <label>Email *</label>
+          <input id="tutor1Email" name="tutor1Email" required>
+        </div>
+      </div>
+
+      <!-- ================= TUTOR 2 ================= -->
+      <h3>Tutor 2 (opcional)</h3>
+
+      <div class="grupo">
+        <div>
+          <label>Nombre</label>
+          <input id="tutor2Nombre" name="tutor2Nombre">
+        </div>
+
+        <div>
+          <label>Apellido</label>
+          <input id="tutor2Apellido" name="tutor2Apellido">
+        </div>
+
+        <div>
+          <label>Teléfono</label>
+          <input id="tutor2Tel" name="tutor2Tel">
+        </div>
+
+        <div>
+          <label>Email</label>
+          <input id="tutor2Email" name="tutor2Email">
+        </div>
+      </div>
+
+      <!-- ================= OTROS ================= -->
+      <div class="grupo">
+        <div class="full">
+          <label>Ficha de salud (detalle importante)</label>
+          <textarea id="fichaSalud" name="fichaSalud" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; max-width: 400px; margin: 0 auto; margin-top: 20px;">
+        <!-- Botón Guardar ficha -->
+        <button type="submit" id="btnGuardar">Guardar ficha</button>
+
+        <!-- Botón Siguiente, deshabilitado por defecto, tipo button -->
+        <button type="button" id="btnSiguiente" disabled>Siguiente ➜</button>
+      </div>
+
+      <hr class="divider">
+      <label>Log de acciones</label>
+      <div id="msg" class="msg"></div>
+
+
+
+    </form>
+
+    <script>
+      let BASE_URL = null;
+    
+
+      document.getElementById("formAlumno").addEventListener("submit", function(event) {
+        event.preventDefault(); // ⛔ evita que el navegador envíe el formulario
+        guardar(); // llama a tu función personalizada
+      });
+     
+
+      google.script.run
+        .withSuccessHandler(url => {
+          BASE_URL = url;
+        })
+        .withFailureHandler(err => {
+          alert("No se pudo obtener la URL base");
+          console.error(err);
+        })
+        .getBaseUrl();
+
+
+
+function guardar() {
+  const form = document.getElementById("formAlumno");
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  const btn = form.querySelector('button[type="submit"]');
+  if (btn) btn.disabled = true;
+
+  document.getElementById("msg").innerText = "Guardando ficha...";
+
+  google.script.run
+    .withSuccessHandler(r => {
+      if (btn) btn.disabled = false;
+
+      if (!r || !r.ok) {
+        document.getElementById("msg").innerText =
+          r?.mensaje || "Error al guardar";
+        return;
+      }
+
+      // ✅ setear alumno activo (DNI) y loguear resultado
+      google.script.run
+        .withSuccessHandler(resultado => {
+          console.log("setAlumnoActivo:", resultado ? "true" : "false");
+        })
+        .setAlumnoActivo(data.dni);
+
+      // ✅ mostrar mensaje
+      document.getElementById("msg").innerText =
+        "Ficha guardada correctamente ✔";
+
+      // ✅ habilitar botón Siguiente
+      const btnSiguiente = document.getElementById("btnSiguiente");
+      btnSiguiente.disabled = false;
+
+      // ✅ definir click del botón Siguiente
+      btnSiguiente.onclick = function() {
+         window.top.location.href = BASE_URL + "?page=" + r.page;
+      };
+    })
+    .withFailureHandler(err => {
+      if (btn) btn.disabled = false;
+      document.getElementById("msg").innerText = err.message;
+    })
+    .guardarFichaAlumno(data);
+}
+
+
+
+//============================  Validar anio y especialidad ========================================
+    const anioSelect = document.getElementById("anio");
+    const especialidadSelect = document.getElementById("especialidad");
+    let msg;
+
+    function validarEspecialidadPorAnio() {
+      const anio = Number(anioSelect.value);
+
+      // Habilitar todo por defecto
+      [...especialidadSelect.options].forEach(opt => {
+        opt.disabled = false;
+      });
+
+      msg.innerText = document.getElementById("msg");
+
+      if (!anio) return;
+
+      // 1°, 2°, 3° → SOLO CB
+      if (anio >= 1 && anio <= 3) {
+        [...especialidadSelect.options].forEach(opt => {
+          if (opt.value !== "" && opt.value !== "CB") {
+            opt.disabled = true;
+          }
+        });
+
+        if (especialidadSelect.value !== "CB") {
+          especialidadSelect.value = "";
+          msg.innerText = "Para 1°, 2° o 3° año solo corresponde Ciclo Básico (CB)";
+        }
+      }
+
+      // 4°, 5°, 6° → SOLO CSC / CSM
+      if (anio >= 4 && anio <= 6) {
+        [...especialidadSelect.options].forEach(opt => {
+          if (opt.value === "CB") {
+            opt.disabled = true;
+          }
+        });
+
+        if (especialidadSelect.value === "CB") {
+          especialidadSelect.value = "";
+          msg.innerText = "Para 4° año en adelante debe elegir CSC o CSM";
+        }
+      }
+    }
+
+    // Escuchar cambios
+    anioSelect.addEventListener("change", validarEspecialidadPorAnio);
+
+//=============================  Fin  de Prueba ===================================================
+
+    //=============== Boton volver ===========================
+    function volverPagina(page) {
+      google.script.run
+        .withSuccessHandler(url => {
+           window.top.location.href = url + "?page=" + page;
+        })
+        .withFailureHandler(err => {
+          alert("Error al volver: " + err.message);
+        })
+        .getBaseUrl();
+    }
+
+    //========================================================
+
+    </script>
+    <button class="btn-volver" onclick="volverPagina('inicio')">⟵ Volver</button>
+  </body>
+</html>
+
+
+

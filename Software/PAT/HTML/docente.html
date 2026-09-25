@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      margin-top: 30px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    select, input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background: #125ca1;
+    }
+
+    button:disabled {
+      background: #b0b0b0;
+      cursor: not-allowed;
+    }
+
+    .msg {
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .ok {
+      font-size: 1.2em;
+      color: #2e7d32;
+    }
+
+    .error {
+      font-size: 1.2em;
+      color: #c62828;
+    }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: auto !important;
+      min-width: unset !important;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*========================================================*/
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>Búsqueda de Alumnos</h1>
+  <hr class="divider"> 
+  <!-- MODO BUSQUEDA -->
+  <label>Criterio de búsqueda</label>
+  <select id="modoBusqueda" onchange="cambiarModoBusqueda()">
+    <option value="apellido">Apellido+Turno+Especialidad</option>
+    <option value="anio">Año+Turno+Especialidad</option>
+  </select>
+
+  <!-- FILTROS EN UNA SOLA LÍNEA (incluye Apellido) -->
+  <div id="filtrosLinea" style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:8px;">
+    <!-- APELLIDO -->
+    <div id="grupoApellido" style="min-width:180px; margin-right:32px;">
+      <label>Apellido del alumno</label>
+      <input type="text" id="apellido" placeholder="Ej: Pérez">
+    </div>
+
+    <!-- BUSQUEDA POR AÑO (se mantiene el id existente) -->
+    <div id="grupoAnio" style="min-width:120px; display:none;">
+      <label>Año</label>
+      <select id="anio" onchange="actualizarEspecialidades()">
+        <option value="">-- Año --</option>
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+      </select>
+    </div>
+
+    <!-- TURNO -->
+    <div style="min-width:160px;">
+      <label>Turno</label>
+      <select id="turno">
+        <option value="">-- Turno --</option>
+        <option value="TD">Diurno</option>
+        <option value="TN">Nocturno</option>
+      </select>
+    </div>
+
+    <!-- ESPECIALIDAD -->
+    <div style="min-width:160px;">
+      <label for="especialidad">Especialidad</label>
+      <select id="especialidad">
+        <option value="">-- Todas --</option>
+        <option value="CB">CB</option>
+        <option value="CSC">CSC</option>
+        <option value="CSM">CSM</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="buscarAlumnos()">Buscar alumnos</button>
+
+  <!-- LISTADO DE ALUMNOS -->
+  <label>Alumnos encontrados</label>
+  <select id="alumno" size="8" onclick="abrirLegajoAlumno()">
+    <option value="">-- Seleccione un alumno --</option>
+  </select>
+  <hr class="divider">
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+
+
+</div>
+
+
+
+<script>
+  function cambiarModoBusqueda() {
+    const modo = document.getElementById("modoBusqueda").value;
+    document.getElementById("grupoApellido").style.display =
+      modo === "apellido" ? "block" : "none";
+    document.getElementById("grupoAnio").style.display =
+      modo === "anio" ? "block" : "none";
+  }
+
+  function actualizarEspecialidades() {
+  const anio = document.getElementById("anio").value;
+  const selEspecialidad = document.getElementById("especialidad");
+
+  const optCB = selEspecialidad.querySelector('option[value="CB"]');
+  const optCSC = selEspecialidad.querySelector('option[value="CSC"]');
+  const optCSM = selEspecialidad.querySelector('option[value="CSM"]');
+
+  // Reset: habilitar todo
+  [optCB, optCSC, optCSM].forEach(o => {
+    o.disabled = false;
+    o.hidden = false;
+  });
+
+  // Sin año → no restringe
+  if (!anio) return;
+
+  const anioNum = Number(anio);
+
+  if (anioNum >= 1 && anioNum <= 3) {
+    // Solo CB
+    optCSC.disabled = true;
+    optCSM.disabled = true;
+    optCSC.hidden = true;
+    optCSM.hidden = true;
+
+    if (selEspecialidad.value !== "CB") {
+      selEspecialidad.value = "CB";
+    }
+  }
+
+  if (anioNum >= 4 && anioNum <= 6) {
+    // Solo CSC / CSM
+    optCB.disabled = true;
+    optCB.hidden = true;
+
+    if (selEspecialidad.value === "CB") {
+      selEspecialidad.value = "";
+    }
+  }
+}
+
+  function buscarAlumnos() {
+    const modo = document.getElementById("modoBusqueda").value;
+    const apellido = document.getElementById("apellido").value.trim();
+    const anio = document.getElementById("anio").value;
+    const turno = document.getElementById("turno").value;
+    const especialidad = document.getElementById("especialidad").value;
+
+
+        // ===== VALIDACIÓN AÑO / ESPECIALIDAD =====
+    if (anio) {
+      const anioNum = Number(anio);
+      if (anioNum >= 1 && anioNum <= 3) {
+        if (especialidad && especialidad !== "CB") {
+          msg.innerHTML = `<div class="error">
+            Para 1° a 3° año la especialidad debe ser <b>CB</b>
+          </div>`;
+          return;
+        }
+      }
+      if (anioNum >= 4 && anioNum <= 6) {
+        if (especialidad === "CB") {
+          msg.innerHTML = `<div class="error">
+            Para 4° a 6° año la especialidad debe ser <b>CSC</b> o <b>CSM</b>
+          </div>`;
+          return;
+        }
+      }
+    }
+
+    const msg = document.getElementById("msg");
+    const sel = document.getElementById("alumno");
+
+    if (!turno || (modo === "apellido" && !apellido) || (modo === "anio" && !anio)) {
+      msg.innerHTML = `<div class="error">Completá los datos de búsqueda</div>`;
+      return;
+    }
+
+    sel.innerHTML = `<option>Cargando alumnos...</option>`;
+    msg.innerHTML = "";
+
+    google.script.run
+      .withSuccessHandler(alumnos => {
+        sel.innerHTML = "";
+
+        if (!alumnos || alumnos.length === 0) {
+          sel.innerHTML = "";
+
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "Alumno no existe";
+          opt.disabled = true;
+          opt.selected = true;
+
+          sel.appendChild(opt);
+
+          msg.innerHTML = `<div class="error">No se encontraron alumnos</div>`;
+          return;
+        }
+
+        alumnos.forEach(a => {
+          const opt = document.createElement("option");
+          opt.value = a.url;
+
+          const permisoTxt =
+            a.permiso === "EDIT"
+              ? "🟢 Acceso con permisos de edición"
+              : "🔵 Acceso solo lectura";
+
+          opt.textContent =
+            `${a.apellido}, ${a.nombre} (${a.anio}°${a.div}° ${a.turno}) — ${permisoTxt} - PAT:${a.docente}`;
+
+          sel.appendChild(opt);
+        });
+
+        msg.innerHTML = `<div class="ok">Alumnos cargados</div>`;
+      })
+      .withFailureHandler(err => {
+        msg.innerHTML = `<div class="error">${err.message}</div>`;
+      })
+      .buscarAlumnos(modo, apellido, anio, turno, especialidad);
+  }
+
+  function abrirLegajoAlumno() {
+    const sel = document.getElementById("alumno");
+    const urlArchivo = sel.value;
+    if (!urlArchivo) return;
+
+    google.script.run
+      .withSuccessHandler(url => {
+        window.open(url, "_blank");
+      })
+      .withFailureHandler(err => {
+        alert(err.message);
+      })
+      .abrirLegajoAlumno(urlArchivo);
+  }
+
+
+  /*=============== Boton volver ===========================*/
+  function volverPagina(page) {
+    google.script.run
+      .withSuccessHandler(url => {
+        window.top.location.href = url + "?page=" + page;
+      })
+      .withFailureHandler(err => {
+        alert("Error al volver: " + err.message);
+      })
+      .getBaseUrl();
+  }
+  /*========================================================*/
+</script>
+
+<button class="btn-volver" onclick="volverPagina('inicio')">⟵ Volver</button>
+
+</body>
+</html>

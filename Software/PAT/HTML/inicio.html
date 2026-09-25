@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        text-align: center;
+        padding: 40px;
+      }
+
+      h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+      }
+
+      .sub {
+        color: #555;
+        margin-bottom: 30px;
+      }
+
+      .botones {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 20px 30px;
+        font-size: 18px;
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        background: #1976d2;
+        color: white;
+      }
+
+/* Color violeta para el botón Selección de Docente */
+#btnSeleccion {
+  background: linear-gradient(180deg, #7b1fa2, #4a148c);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+}
+
+/* Hover más vivo */
+#btnSeleccion:hover {
+  background: linear-gradient(180deg, #8e24aa, #5e35b1);
+}
+
+/* Apariencia cuando está deshabilitado (se respeta la opacidad que ya aplicás desde JS) */
+#btnSeleccion:disabled {
+  filter: grayscale(10%);
+}
+
+button.admin { background: #c62828; }
+button.directivo { background: #2e7d32; }
+button.docente { background: #1565c0; }
+
+.hidden { display: none; }
+
+.footer {
+  margin-top: 40px;
+  font-size: 12px;
+  color: #777;
+}
+
+.logo-flotante {
+  position: fixed;      /* lo fija en pantalla */
+  top: 20px;            /* distancia desde arriba */
+  right: 20px;          /* distancia desde la derecha */
+  width: 80px;          /* tamaño del logo */
+  height: auto;
+  z-index: 1000;        /* lo pone por encima de todo */
+}
+</style>
+  </head>
+
+  <body>
+    <img id="logo" class="logo-flotante">
+    <h1>Sistema de Seguimiento de las Trayectorias</h1>
+    <div class="sub" id="userInfo">Cargando usuario...</div>
+
+    <div class="botones">
+      <button id="btnDocente" class="docente hidden"
+        onclick="go('docente')">
+        Docente
+      </button>
+
+      <button id="btnDirectivo" class="directivo hidden"
+        onclick="go('directivo')">
+        Directivo
+      </button>
+
+      <button id="btnAdmin" class="admin hidden"
+        onclick="go('admin')">
+        Administración
+      </button>
+
+      <button id="btnSeleccion" onclick="go('ficha_alumno')">
+        Selección de Docente
+      </button>
+
+    </div>
+
+    <div class="footer">  
+      Proyecto PAT21 · Folino Inc · v2.0
+    </div>
+
+
+
+ <script>
+  function go(page) {
+    google.script.run
+      .withSuccessHandler(url => {
+        window.top.location.href = url + "?page=" + page;
+      })
+      .withFailureHandler(err => {
+        alert("Error al navegar: " + err.message);
+      })
+      .getBaseUrl();
+  }
+
+  // ============================
+  // INICIO TIEMPO
+  // ============================
+  const start = performance.now();
+
+  // ============================
+  // Referencias a botones
+  // ============================
+  const btnSeleccion  = document.getElementById("btnSeleccion");
+  const btnDocente    = document.getElementById("btnDocente");
+  const btnDirectivo  = document.getElementById("btnDirectivo");
+  const btnAdmin      = document.getElementById("btnAdmin");
+  const userInfoEl    = document.getElementById("userInfo");
+
+  // ============================
+  // Helper botón Selección
+  // ============================
+  function setSeleccionEnabled(enabled) {
+    if (enabled) {
+      btnSeleccion.disabled = false;
+      btnSeleccion.style.opacity = "1";
+      btnSeleccion.style.cursor = "pointer";
+      btnSeleccion.title = "";
+    } else {
+      btnSeleccion.disabled = true;
+      btnSeleccion.style.opacity = "0.5";
+      btnSeleccion.style.cursor = "not-allowed";
+      btnSeleccion.title = "No disponible";
+    }
+  }
+
+  // Deshabilitado hasta saber estado
+  setSeleccionEnabled(false);
+
+  // ============================
+  // Ocultar todos los botones de rol
+  // ============================
+  function ocultarBotonesRol() {
+    btnDocente.classList.add("hidden");
+    btnDirectivo.classList.add("hidden");
+    btnAdmin.classList.add("hidden");
+  }
+
+  ocultarBotonesRol();
+
+  // ============================
+  // Cargar información del usuario
+  // ============================
+  google.script.run
+    .withSuccessHandler(info => {
+
+      // ----------------------------
+      // Mostrar info de usuario
+      // ----------------------------
+      if (info && info.error) {
+        userInfoEl.innerText = info.error;
+        console.error(info.error);
+      } else if (info && info.email) {
+        userInfoEl.innerText = `Usuario: ${info.email} (${info.nivel})`;
+        console.info("Usuario identificado:", info.nivel);
+      } else {
+        userInfoEl.innerText = "Usuario no registrado";
+        console.warn("Usuario no registrado");
+      }
+
+      // ----------------------------
+      // Lógica de visibilidad
+      // ----------------------------
+      ocultarBotonesRol();
+
+      if (info && info.nivel) {
+        switch (info.nivel) {
+          case "DOCENTE":
+            btnDocente.classList.remove("hidden");
+            break;
+
+          case "DIRECTIVO":
+            btnDocente.classList.remove("hidden");
+            btnDirectivo.classList.remove("hidden");
+            break;
+
+          case "ADMIN":
+            btnDocente.classList.remove("hidden");
+            btnDirectivo.classList.remove("hidden");
+            btnAdmin.classList.remove("hidden");
+            break;
+
+          default:
+            console.warn("Nivel desconocido:", info.nivel);
+        }
+      }
+
+      // ----------------------------
+      // Estado del botón Selección
+      // ----------------------------
+      google.script.run
+        .withSuccessHandler(habilitado => {
+          setSeleccionEnabled(Boolean(habilitado));
+        })
+        .withFailureHandler(err => {
+          console.error("Error estado botón Selección:", err);
+          setSeleccionEnabled(false);
+        })
+        .getEstadoBotonSeleccion();
+
+      // ----------------------------
+      // Tiempo de carga
+      // ----------------------------
+      const end = performance.now();
+      console.log(
+        "Tiempo total de carga:",
+        (end - start).toFixed(2),
+        "ms"
+      );
+    })
+
+    .withFailureHandler(err => {
+      userInfoEl.innerText = "Error al cargar usuario";
+      console.error("Error loadInicio:", err);
+      ocultarBotonesRol();
+      setSeleccionEnabled(false);
+    })
+
+    .loadInicio();
+
+  google.script.run
+    .withSuccessHandler(function(data) {
+      const img = document.getElementById("logo");
+      img.src = "data:" + data.contentType + ";base64," + data.base64;
+    })
+    .getLogo();
+</script>
+
+
+  </body>
+</html>
+
+

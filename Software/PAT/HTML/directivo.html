@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+    }
+
+    .box {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h2 {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      color: #444;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 25px;   /* 🔹 Más redondeado como admin */
+      cursor: pointer;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    /* Colores */
+    .azul { background-color: #1976d2; }
+    .verde { background-color: #2e7d32; }
+    .naranja { background-color: #ef6c00; }
+    .violeta { background-color: #6a1b9a; }
+    .rojo { background-color: #c62828; }
+
+    .divider {
+      margin: 30px 0;
+      border: 0;
+      border-top: 2px solid #eee;
+    }
+
+    /*=============== Boton volver ===========================*/
+    .volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: auto !important;
+      min-width: unset !important;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .volver:hover {
+      background-color: #125aa0;
+    }
+
+    /*==========  Para ver comentarios en los botones ==========*/
+    .action-btn[data-tooltip] {
+      position: relative;
+    }
+
+    .action-btn[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 280px;
+      text-align: left;
+      white-space: normal;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 9999;
+    }
+    /*==========================================================*/
+
+  </style>
+</head>
+
+<body>
+
+ 
+
+  <div class="box">
+    <h1>Panel Directivo</h1>
+    <hr class="divider">
+    <!-- ================= ESTADÍSTICA ================= -->
+    <h3>Estadística</h3>
+    <div class="button-grid">
+      <button class="azul action-btn" onclick="volverPagina('directivo_estadistica')">Estadísticas generales</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ================= ALUMNOS ================= -->
+    <h3>Alumnos</h3>
+    <div class="button-grid">
+      <button class="verde action-btn" onclick="volverPagina('directivo_ficha_alumno')"
+       data-tooltip="Ingresa un nuevo alumno a la base de datos. En el ingreso se selecciona un docente PAT.">Ingresar alumno nuevo</button>
+      <button class="rojo action-btn" onclick="volverPagina('directivo_borrar_alumno')"
+      data-tooltip="Borra un alumno, el legajo del mismo se guarda en el directorio Bajas. IMPORTANTE: si el alumno cambia de turno o de división, solamente hay que editar el legajo."
+      >Borrar alumno</button>
+      <button class="violeta action-btn" onclick="volverPagina('directivo_editarAlumno')"
+      data-tooltip="Edita un alumno, se modifican los datos del Legajo y de la base de datos."
+      >Editar un alumno</button>
+      <button class="naranja action-btn" onclick="volverPagina('directivo_reasignar_PAT')"
+      data-tooltip="Reasigna solamente un alumno que ya tiene PAT a otro."
+      >Reasignar PAT</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ================= DOCENTES ================= -->
+    <h3>Docentes</h3>
+    <div class="button-grid">
+      <button class="verde action-btn" onclick="volverPagina('directivo_ingresarDocente')" 
+      data-tooltip="Ingresa a la base de datos un docente con cuenta bue.">Ingresar docente</button>
+      <button class="rojo action-btn" onclick="volverPagina('directivo_borrarDocente')"
+      data-tooltip="Borra un docente de la base de datos, para poder hacerlo no debe tener alumnos asignados."
+      >Borrar docente</button>
+      
+      <button class="azul action-btn" onclick="volverPagina('directivo_editarDocente')"
+      data-tooltip="Edita un docente de la base de datos."
+      >Editar docente</button>
+    
+      <button class="violeta action-btn" onclick="volverPagina('directivo_alumnosDocentePAT')"
+      data-tooltip="Busca qué alumnos tiene asignado un docente.">Buscar alumnos del docente PAT</button>
+      <button class="naranja action-btn" onclick="volverPagina('directivo_reasignarGrupoPAT')"
+      data-tooltip="Reasigna la totalidad de alumnos que tiene un docente a otro.Para poder hacerlo el docente destino debe tener la posibilidad de tener vacantes suficientes."
+      >Reasignar alumnos a otro PAT</button>
+    </div>
+
+  </div>
+
+  <!-- BOTÓN VOLVER -->
+  <button class="volver" onclick="volverPagina('inicio')">&larr; Volver</button>
+
+  <script>
+
+  /*=============== Boton volver ===========================*/
+  function volverPagina(page) {
+    google.script.run
+      .withSuccessHandler(url => {
+        window.top.location.href = url + "?page=" + page;
+      })
+      .withFailureHandler(err => {
+        alert("Error al volver: " + err.message);
+      })
+      .getBaseUrl();
+  }
+  /*========================================================*/
+
+ 
+ 
+  </script>
+
+</body>
+</html>

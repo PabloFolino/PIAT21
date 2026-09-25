@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .box {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:disabled {
+      background: #b0b0b0;
+      cursor: not-allowed;
+    }
+
+    button:hover {
+      background: #125ca1;
+    }
+
+    button:disabled:hover {
+      background: #b0b0b0;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 14px;     /* tamaño fijo */
+      min-height: 40px;    /* evita saltos visuales */
+      text-align: left;
+
+    }
+
+    .msg.ok {
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    .msg.error {
+      color: #c62828;
+      font-weight: 600;
+    }
+
+/*   Botones de habilitar y Deshabilitar Inscripcion */
+/* Centrado general del control de estado */
+.estado-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* Contenedor horizontal centrado */
+.estado-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: nowrap;
+}
+
+/* Controles de botones */
+.estado-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Botones ovalados compactos */
+.estado-btn {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  min-width: 100px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: transform .08s ease, opacity .12s ease;
+}
+
+.estado-btn:active { transform: translateY(1px); }
+.estado-btn.habilitar { background-color: #2e7d32; }
+.estado-btn.deshabilitar { background-color: #c62828; }
+
+/* Indicador con etiqueta encima y tamaño mayor */
+.estado-indicador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+}
+
+.estado-label {
+  font-size: 13px;
+  color: #444;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Luz indicadora más visible */
+.indicador {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: gray;
+  border: 3px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: background-color .18s ease, box-shadow .18s ease;
+}
+
+/* Línea divisoria antes del botón Actualizar permisos */
+.divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.06), rgba(0,0,0,0.12), rgba(0,0,0,0.06));
+  margin: 20px 0;
+}
+/* Fila de acciones centrada */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+/* Botones ovalados para acciones */
+.action-btn {
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: none;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  min-width: 190px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  transition: transform .08s ease, opacity .12s ease, background-color .12s ease;
+}
+
+.action-btn:active { transform: translateY(1px); }
+
+.action-btn.actualizar {
+  background: linear-gradient(180deg,#1976d2,#125ca1);
+}
+.action-btn.borrar {
+  background: linear-gradient(180deg,#c62828,#9b2222);
+}
+
+.action-btn.huerfanos {
+  background: linear-gradient(180deg,#BF5A00,#E67E00);
+}
+
+.action-btn.list_permisos {
+  background: linear-gradient(180deg, #8e24aa, #5e35b1);
+}
+
+.action-btn.backUpLegajo {
+  background: linear-gradient(180deg,#1976d2,#125ca1);
+}
+.action-btn.restoreLegajo {
+  background: linear-gradient(180deg,#c62828,#9b2222);
+}
+
+/* Hover states */
+.action-btn.actualizar:hover { background: linear-gradient(180deg,#1b78df,#0f4f8f); }
+.action-btn.borrar:hover { background: linear-gradient(180deg,#d43a3a,#8a1b1b); }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      width: auto !important;
+      min-width: unset !important;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*==========================================================*/
+    /*==========  Para ver comentarios en los botones ==========*/
+    .action-btn[data-tooltip] {
+      position: relative;
+    }
+
+    .action-btn[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      width: 280px;
+      text-align: left;
+      white-space: normal;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 9999;
+    }
+    /*==========================================================*/
+
+
+  </style>
+</head>
+
+<body>
+<div class="box">
+  <h1>Administrador</h1>
+<hr class="divider">
+<label>Selección de Docente</label>
+<div class="estado-wrapper">
+  <div class="estado-container">
+
+    <div class="estado-controls">
+      <button class="estado-btn habilitar" onclick="setEstado(true)">Habilitar</button>
+      <button class="estado-btn deshabilitar" onclick="setEstado(false)">Deshabilitar</button>
+    </div>
+
+    <!-- NUEVO BLOQUE AÑO -->
+    <div class="estado-indicador">
+      <div class="estado-label">Año actual</div>
+      <select id="anioSelect" style="padding:6px 10px; border-radius:6px;"></select>
+    </div>
+
+    <div class="estado-indicador">
+      <div class="estado-label">Estado de inscripción</div>
+      <div id="indicador" class="indicador" title="Estado de inscripción"></div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="divider">
+<label>Permisos de legajos de alumnos</label>
+<div class="action-row">
+  <button class="action-btn actualizar" onclick="actualizarPermisos()">Actualizar todos los permisos</button>
+  <button class="action-btn borrar" onclick="limpiarTodosPermisos()">Borrar todos los permisos</button>
+</div>
+<div class="action-row">
+  <button class="action-btn list_permisos" onclick="ejecutarListado()"
+   data-tooltip="Genera un archivo en la carpeta BackUp con el detalle completo de editores, lectores y permisos heredados de todos los legajos.">Genera archivo listado_permisos</button>
+  <button class="action-btn huerfanos" onclick="buscarAuditoriaLegajos()"
+  data-tooltip="Genera un archivo en la carpeta BackUp con el detalle de todos los legajos con problemas. --> Legajo huérfano:Legajo en Drive que no está registrado en planilla. -->Inconsistencia:Alumno tiene docente asignado pero NO existe archivo en Drive.">Genera archivo auditoria_legajos</button>
+</div>
+
+
+<hr class="divider">
+<label>Resguardo del sistema</label>
+<div class="action-row">
+  <button class="action-btn backUpLegajo" onclick="backUpLegajos()"
+  data-tooltip="Genera un archivo de BackUp de todos los legajos de la carpeta ALUMNOS.El archivo no debe superar los 40MBytes.">BacKUp de los legajos de alumnos</button>
+  <button class="action-btn restoreLegajo" onclick="restoreLegajos()"
+  data-tooltip="FALTA IMPLEMENTAR">Restore de todos los legajos</button>
+</div>
+<div class="action-row">
+  <button class="action-btn huerfanos" onclick="backUpPlanillaPAT()"
+  data-tooltip="Genera un archivo de BackUp de la planilla principal">Genera BackUp del archivo Seleccion_PAT</button>
+</div>
+
+
+<hr class="divider">
+<label>Docentes</label>
+
+<div class="action-row">
+  <button class="action-btn list_permisos" onclick="enviarListadosATodos()"
+  data-tooltip="Envia a sus emails cuenta bue a todos los docentes PAT que alumnosposeen.">
+    Enviar listado a todos los docentes PAT
+  </button>
+  <button class="action-btn restoreLegajo" onclick="buscarAuditoriaDocentes()"
+  data-tooltip="Genera un archivo de auditoria de docentes en el directorio BackUp.">
+    Auditoria de docentes
+  </button>
+</div>
+
+<hr class="divider">
+<label>Log de acciones</label>
+<div id="msg" class="msg"></div>
+
+<button class="btn-volver" onclick="volverPagina('inicio')">⟵ Volver</button>
+</div>
+
+<script>
+
+  function cargarEstado() {
+    google.script.run
+      .withSuccessHandler(estado => {
+        actualizarIndicador(estado);
+      })
+      .getEstadoBotonSeleccion();
+  }
+
+  function setEstado(valor) {
+
+    const msg = document.getElementById("msg");
+    const anioSeleccionado = document.getElementById("anioSelect").value;
+
+    google.script.run
+      .withSuccessHandler(() => {
+
+        actualizarIndicador(valor);
+
+        msg.innerHTML = `
+          <div class="ok">
+            Estado actualizado correctamente<br>
+            Año actual guardado: <b>${anioSeleccionado}</b>
+          </div>
+        `;
+
+      })
+      .withFailureHandler(err => {
+        msg.innerHTML = `<div class="error">${err.message}</div>`;
+      })
+      .setEstadoYAnio(valor, anioSeleccionado);
+  }
+
+  function actualizarIndicador(estado) {
+    const indicador = document.getElementById("indicador");
+    const habilitarBtn = document.querySelector(".estado-btn.habilitar");
+    const deshabilitarBtn = document.querySelector(".estado-btn.deshabilitar");
+
+    // Color de la luz
+    indicador.style.backgroundColor = estado ? "#2e7d32" : "#c62828";
+
+    // Sombra más viva cuando está habilitado
+    indicador.style.boxShadow = estado
+      ? "0 6px 14px rgba(46,125,50,0.28)"
+      : "0 6px 14px rgba(198,40,40,0.28)";
+
+    // Título accesible
+    indicador.title = estado ? "Habilitado" : "Deshabilitado";
+
+    // Marcar visualmente el botón activo (no lo deshabilita)
+    if (habilitarBtn && deshabilitarBtn) {
+      habilitarBtn.style.opacity = estado ? "1" : "0.85";
+      deshabilitarBtn.style.opacity = estado ? "0.85" : "1";
+    }
+  }
+
+  cargarEstado();
+  cargarAnios();
+
+
+function actualizarPermisos() {
+
+  // ============================
+  // INICIO TIEMPO
+  // ============================
+   const start = performance.now();
+
+  const msg = document.getElementById("msg");
+  msg.innerHTML = "⏳ Actualizando permisos, por favor espere, puede tardar unos minutos...";
+
+  google.script.run
+    .withSuccessHandler(res => {
+      msg.innerHTML = `<div class="ok">
+        ✔ Permisos actualizados<br>
+        Docentes procesados: ${res.docentesProcesados}<br>
+        Legajos procesados: ${res.legajosProcesados}<br>
+        Cambios realizados: ${res.cambiosRealizados}
+      </div>`;
+    })
+    .withFailureHandler(err => {
+      msg.innerHTML = `<div class="error">${err.message}</div>`;
+    })
+    .actualizarPermisosLegajos();
+  // ----------------------------
+  // Tiempo de carga
+  // ----------------------------
+  const end = performance.now();
+  console.log(
+    "Tiempo total de carga:",
+    (end - start).toFixed(2),
+    "ms"
+    );
+}
+
+      //=====================  Boton generar archivo listado_permisos ==========
+      function ejecutarListado() {
+
+        const msg = document.getElementById("msg");
+        msg.textContent = "Generando listado... ⏳";
+        msg.className = "msg";
+
+        // ============================
+        // INICIO TIEMPO
+        // ============================
+        const start = performance.now();
+
+         google.script.run
+          .withSuccessHandler(mostrarResultado)
+          .withFailureHandler(mostrarError)
+          .generarListadoPermisos();
+
+        // ----------------------------
+        // Tiempo de carga
+        // ----------------------------
+        const end = performance.now();
+        console.log(
+          "Tiempo total de carga:",
+          (end - start).toFixed(2),
+          "ms"
+        );
+
+      }
+
+      function mostrarResultado(resultado) {
+
+        const msg = document.getElementById("msg");
+
+        if (resultado.ok) {
+          msg.className = "msg ok";
+          msg.innerHTML = `
+            ✅ Listado generado correctamente<br>
+            📁 Archivos encontrados: <b>${resultado.archivosEncontrados}</b><br>
+            📄 Archivo: <b>${resultado.nombreArchivo}</b>
+          `;
+        } else {
+          msg.className = "msg error";
+          msg.textContent = "❌ Error: " + resultado.error;
+        }
+      }
+
+      function mostrarError(error) {
+        const msg = document.getElementById("msg");
+        msg.className = "msg error";
+        msg.textContent = "❌ Error inesperado: " + error.message;
+      }
+
+    function limpiarTodosPermisos() {
+
+      const msg = document.getElementById("msg");
+      msg.innerHTML = "⏳ Borrando TODOS los permisos del sistema...";
+
+      // ============================
+      // INICIO TIEMPO
+      // ============================
+      const start = performance.now();
+
+      google.script.run
+        .withSuccessHandler(res => {
+          msg.innerHTML = `
+            <div class="ok">
+              ✔ ${res.mensaje}
+            </div>
+          `;
+        })
+        .withFailureHandler(err => {
+          msg.innerHTML = `
+            <div class="error">
+              ❌ Error: ${err.message}
+            </div>
+          `;
+        })
+        .limpiarPermisosSistemaCompleto(); // 👈 UNA SOLA LLAMADA
+    
+      // ----------------------------
+      // Tiempo de carga
+      // ----------------------------
+      const end = performance.now();
+      console.log(
+        "Tiempo total de carga:",
+        (end - start).toFixed(2),
+        "ms"
+      );
+    
+    
+    }
+
+    function enviarListadosATodos() {
+
+      const msg = document.getElementById("msg");
+      msg.innerHTML = "⏳ Enviando emails a docentes...";
+
+      google.script.run
+        .withSuccessHandler(res => {
+
+          msg.innerHTML = `
+            <div class="ok">
+              ✔ Proceso finalizado<br>
+              📧 Docentes procesados: ${res.totalDocentes}<br>
+              📬 Emails enviados: ${res.enviados}<br>
+              ⚠ Sin alumnos: ${res.sinAlumnos}
+            </div>
+          `;
+
+        })
+        .withFailureHandler(err => {
+          msg.innerHTML = `<div class="error">❌ ${err.message}</div>`;
+        })
+        .enviarListadoATodosLosDocentes();
+    }
+
+    function mostrarResultadoHuerfanos(resultado) {
+
+      const msg = document.getElementById("msg");
+
+      if (resultado.ok) {
+        msg.className = "msg ok";
+        msg.innerHTML = `
+          ✅ Archivo de legajos huérfanos generado correctamente<br>
+          📁 Cantidad de legajos sin docentes:<b>${resultado.funcionales}</b><br>
+          📁 Cantidad de legajos huérfanos:<b>${resultado.huerfanosDrive}</b><br>
+          📁 Cantidad de legajos con inconsistencia:<b>${resultado.inconsistencias}</b><br>
+          📁 Cantidad de legajos con errores: <b>${resultado.totalDetectados}</b><br><br>
+          📄 Archivo generado: <b>${resultado.nombreArchivo}</b>
+        `;
+      } else {
+        msg.className = "msg error";
+        msg.textContent = "❌ Error: " + resultado.error;
+      }
+    }
+
+
+    //=====================  Boton generar archivo legajos_huerfanos ==========
+    function buscarAuditoriaLegajos() {
+
+      const msg = document.getElementById("msg");
+      msg.textContent = "Generando archivo de legajos huérfanos... ⏳";
+      msg.className = "msg";
+
+      const start = performance.now();
+
+      google.script.run
+        .withSuccessHandler(mostrarResultadoHuerfanos)
+        .withFailureHandler(mostrarError)
+        .generarAuditoriaLegajos();
+
+      const end = performance.now();
+      console.log(
+        "Tiempo total de carga:",
+        (end - start).toFixed(2),
+        "ms"
+      );
+    }
+
+    //=====================  Boton backup planilla Seleccion_PAT ==========
+    function backUpPlanillaPAT() {
+
+      const msg = document.getElementById("msg");
+      msg.className = "msg";
+      msg.innerHTML = "⏳ Generando BackUp de la planilla Seleccion_PAT...";
+
+      const start = performance.now();
+
+      google.script.run
+        .withSuccessHandler(res => {
+
+          if (res.ok) {
+
+            msg.className = "msg ok";
+            msg.innerHTML = `
+              ✅ BackUp generado correctamente<br>
+              📄 Archivo creado: <b>${res.nombreArchivo}</b>
+            `;
+
+          } else {
+
+            msg.className = "msg error";
+            msg.innerHTML = `❌ Error: ${res.error}`;
+
+          }
+
+        })
+        .withFailureHandler(err => {
+
+          msg.className = "msg error";
+          msg.innerHTML = `❌ Error inesperado: ${err.message}`;
+
+        })
+        .backupSeleccionPAT();
+
+      const end = performance.now();
+      console.log(
+        "Tiempo total de carga:",
+        (end - start).toFixed(2),
+        "ms"
+      );
+    }
+
+    //=====================  Boton backup directorio Alumnos ==========
+    function backUpLegajos() {
+
+      const msg = document.getElementById("msg");
+      msg.className = "msg";
+      msg.innerHTML = "⏳ Generando BackUp completo del directorio Alumnos...";
+
+      google.script.run
+        .withSuccessHandler(res => {
+
+          if (res.ok) {
+
+            let listaZips = "";
+
+            res.archivos.forEach((archivo, index) => {
+              listaZips += `
+                📦 ${index + 1}) 
+                <a href="${archivo.url}" target="_blank">
+                  ${archivo.nombre}
+                </a>
+                (${archivo.tamañoMB} MB)
+                <br>
+              `;
+            });
+
+            msg.className = "msg ok";
+            msg.innerHTML = `
+              ✅ BackUp generado correctamente<br><br>
+              📁 Total archivos incluidos: <b>${res.totalArchivos}</b><br>
+              📁 Tiempo: <b>${res.tiempoMs}ms</b><br>
+              📦 Total ZIP generados: <b>${res.totalZips}</b><br>
+              </b></b>${listaZips}
+            `;
+
+          } else {
+
+            msg.className = "msg error";
+            msg.innerHTML = `❌ Error: ${res.error}`;
+
+          }
+
+        })
+        .withFailureHandler(err => {
+
+          msg.className = "msg error";
+          msg.innerHTML = `❌ Error inesperado: ${err.message}`;
+
+        })
+        .backupDirectorioAlumnos();
+    }
+
+    function cargarAnios() {
+
+      google.script.run
+        .withSuccessHandler(data => {
+
+          const select = document.getElementById("anioSelect");
+          select.innerHTML = "";
+
+          data.anios.forEach(anio => {
+
+            const option = document.createElement("option");
+            option.value = anio;
+            option.textContent = anio;
+
+            if (anio == data.anioActual) {
+              option.selected = true;
+            }
+
+            select.appendChild(option);
+          });
+
+        })
+        .getAniosConfig();
+    }
+
+    function buscarAuditoriaDocentes() {
+
+      const msg = document.getElementById("msg");
+      msg.className = "msg";
+      msg.innerHTML = "⏳ Ejecutando auditoría de docentes...";
+
+      const start = performance.now();
+
+      google.script.run
+        .withSuccessHandler(res => {
+
+          const end = performance.now();
+          const tiempoFront = (end - start).toFixed(2);
+
+          if (!res) {
+            msg.className = "msg error";
+            msg.innerHTML = "❌ No se recibió respuesta del servidor";
+            return;
+          }
+
+          let resumenHTML = "";
+
+          if (res.total_errores === 0) {
+
+            resumenHTML = `
+              <br>🎉 No se detectaron errores.
+            `;
+
+          } else {
+
+            resumenHTML += `
+              <br><br><b>📊 Resumen por tipo de error:</b><br>
+            `;
+
+            Object.keys(res.resumen_por_tipo).forEach(tipo => {
+              resumenHTML += `
+                - ${tipo}: <b>${res.resumen_por_tipo[tipo]}</b><br>
+              `;
+            });
+          }
+
+          msg.className = "msg ok";
+          msg.innerHTML = `
+            ✅ Auditoría finalizada correctamente<br><br>
+            📄 Archivo generado: <b>${res.archivo_generado}</b><br>
+            🔢 Total de errores: <b>${res.total_errores}</b><br>
+            ⏱ Tiempo backend: <b>${res.tiempo_segundos} s</b><br>
+            ⏱ Tiempo total (frontend): <b>${tiempoFront} ms</b>
+            ${resumenHTML}
+          `;
+
+        })
+        .withFailureHandler(err => {
+
+          msg.className = "msg error";
+          msg.innerHTML = `
+            ❌ Error al ejecutar auditoría<br>
+            ${err.message}
+          `;
+
+        })
+        .verificarDocentesYGenerarBackup();
+    }
+
+    /*=============== Boton volver ===========================*/
+    function volverPagina(page) {
+      google.script.run
+        .withSuccessHandler(url => {
+           window.top.location.href = url + "?page=" + page;
+        })
+        .withFailureHandler(err => {
+          alert("Error al volver: " + err.message);
+        })
+        .getBaseUrl();
+    }
+    /*========================================================*/
+
+</script>
+
+</body>
+</html>

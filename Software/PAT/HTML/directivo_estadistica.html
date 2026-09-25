@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    select {
+      padding: 8px;
+      font-size: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #1976d2;
+      color: white;
+    }
+
+    .ok {
+      background: #c8e6c9;
+    }
+
+    .warn {
+      background: #fff9c4;
+    }
+
+    .bad {
+      background: #ffcdd2;
+    }
+
+    .msg {
+      margin-top: 20px;
+      font-size: 1.1em;
+      text-align: center;
+    }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*==========================================================*/
+
+    /*=============== Boton Buscar Docente =====================*/
+    .btn-buscarDocente {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;        /* bordes redondeados */
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-buscarDocente:hover {
+      background-color: #125aa0;
+    }
+
+    .btn-buscarDocente:active {
+      transform: scale(0.97);
+    }
+    /*========================================================*/
+    /*=========== Contenedor horizontal docentes ===========*/
+    .lista-docentes {
+      display: flex;
+      flex-wrap: wrap;       /* permite que bajen a la siguiente línea */
+      gap: 10px;             /* espacio entre botones */
+      margin-top: 10px;
+    }
+
+    /*=========== Botones docentes violetas ================*/
+    .btn-docente {
+      background-color: #7b1fa2;  /* violeta */
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-docente:hover {
+      background-color: #4a148c;
+    }
+
+    .btn-docente:active {
+      transform: scale(0.96);
+    }
+
+    /*================== RECUADRO DOCENTES ==================*/
+    .modulo-docentes {
+      margin-top: 35px;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+      background: #fafafa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .modulo-docentes h2 {
+      margin-top: 0;
+    }
+
+    .modulo-docentes h3 {
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+
+    .divider-interno {
+      margin: 25px 0;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>Estadísticas del sistema</h1>
+
+  <div>
+    <label for="turno">Turno:</label>
+    <select id="turno" onchange="renderTabla()">
+      <option value="diurno">Diurno</option>
+      <option value="nocturno">Nocturno</option>
+    </select>
+  </div>
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Esp.</th>
+        <th>PAT</th>
+        <th>No PAT</th>
+        <th>Alumnos</th>
+        <th>Cupo Máx.</th>
+        <th>% Ocupación</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+
+  <div class="msg" id="msg">Cargando datos...</div>
+</div>
+
+<button class="btn-volver" onclick="volverPagina('directivo')">⟵ Volver</button>
+
+<script>
+  let datos = null;
+  let docenteSeleccionado = null;
+  let alumnosActuales = [];
+
+
+  function volverPagina(page) {
+    google.script.run
+      .withSuccessHandler(url => {
+        window.top.location.href = url + "?page=" + page;
+      })
+      .withFailureHandler(err => {
+        alert("Error al volver: " + err.message);
+      })
+      .getBaseUrl();
+  }
+
+  function cargarDatos() {
+    google.script.run
+      .withSuccessHandler(resp => {
+        if (!resp) {
+          document.getElementById("msg").innerText =
+            "No se pudieron cargar los datos.";
+          return;
+        }
+
+        datos = resp;
+        document.getElementById("msg").innerText = "";
+        renderTabla();
+      })
+      .withFailureHandler(err => {
+        document.getElementById("msg").innerText =
+          "Error al obtener estadísticas";
+        console.error(err);
+      })
+      .getEstadisticasDirectivo();
+  }
+
+  function renderTabla() {
+    if (!datos) return;
+
+    const turno = document.getElementById("turno").value;
+    const tbody = document.querySelector("#tabla tbody");
+    tbody.innerHTML = "";
+
+    const info = datos[turno];
+
+    for (let esp in info) {
+      const d = info[esp];
+      const tr = document.createElement("tr");
+
+      let clase = "ok";
+      if (d.ocupacion >= 80) clase = "bad";
+      else if (d.ocupacion >= 50) clase = "warn";
+
+      tr.innerHTML = `
+        <td>${esp}</td>
+        <td>${d.pat}</td>
+        <td>${d.noPat}</td>
+        <td>${d.alumnos}</td>
+        <td>${d.cupo}</td>
+        <td class="${clase}">${d.ocupacion.toFixed(2)}%</td>
+      `;
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  cargarDatos();
+
+
+</script>
+
+</body>
+</html>

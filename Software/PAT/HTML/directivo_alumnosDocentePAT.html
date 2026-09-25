@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    select {
+      padding: 8px;
+      font-size: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background: #1976d2;
+      color: white;
+    }
+
+    .ok {
+      background: #c8e6c9;
+    }
+
+    .warn {
+      background: #fff9c4;
+    }
+
+    .bad {
+      background: #ffcdd2;
+    }
+
+    .msg {
+      margin-top: 20px;
+      font-size: 1.1em;
+      text-align: center;
+    }
+
+    /*=============== Boton volver ===========================*/
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      cursor: pointer;
+
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+    /*==========================================================*/
+
+    /*=============== Boton Buscar Docente =====================*/
+    .btn-buscarDocente {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 8px;        /* bordes redondeados */
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-buscarDocente:hover {
+      background-color: #125aa0;
+    }
+
+    .btn-buscarDocente:active {
+      transform: scale(0.97);
+    }
+    /*========================================================*/
+    /*=========== Contenedor horizontal docentes ===========*/
+    .lista-docentes {
+      display: flex;
+      flex-wrap: wrap;       /* permite que bajen a la siguiente línea */
+      gap: 10px;             /* espacio entre botones */
+      margin-top: 10px;
+    }
+
+    /*=========== Botones docentes violetas ================*/
+    .btn-docente {
+      background-color: #7b1fa2;  /* violeta */
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-docente:hover {
+      background-color: #4a148c;
+    }
+
+    .btn-docente:active {
+      transform: scale(0.96);
+    }
+
+    /*================== RECUADRO DOCENTES ==================*/
+    .modulo-docentes {
+      margin-top: 35px;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+      background: #fafafa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .modulo-docentes h2 {
+      margin-top: 0;
+    }
+
+    .modulo-docentes h3 {
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+
+    .divider-interno {
+      margin: 25px 0;
+      border: none;
+      border-top: 1px solid #ddd;
+    }
+
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h1>¿Qué alumnos tiene el docente?</h1>
+
+  
+<div class="modulo-docentes">
+
+  <h2>Buscar Docente</h2>
+
+  <div style="display:flex; gap:10px; align-items:center; margin-bottom:15px;">
+    <input type="text" id="apellidoBusqueda" placeholder="Ingrese apellido"
+          style="flex:1; padding:8px; font-size:14px;">
+    <button class="btn-buscarDocente" onclick="buscarDocenteNombre()">
+      Buscar
+    </button>
+  </div>
+
+  <div id="listaDocentes" class="lista-docentes"></div>
+
+  <h3>Alumnos asignados</h3>
+  <div id="tablaAlumnos"></div>
+
+  <hr class="divider-interno">
+
+  <h3>Enviar listado por email</h3>
+
+  <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+    <input type="email" id="emailDestino" 
+          placeholder="Ingrese email destino"
+          style="flex:1; padding:8px; font-size:14px;">
+
+    <button class="btn-buscarDocente" onclick="enviarEmailListado()">
+      Enviar
+    </button>
+  </div>
+
+  <div id="msgEmail" class="msg"></div>
+
+</div>
+
+
+  <div class="msg" id="msg"> </div>
+</div>
+
+<button class="btn-volver" onclick="volverPagina('directivo')">⟵ Volver</button>
+
+<script>
+  let datos = null;
+  let docenteSeleccionado = null;
+  let alumnosActuales = [];
+
+
+  function volverPagina(page) {
+    google.script.run
+      .withSuccessHandler(url => {
+        window.top.location.href = url + "?page=" + page;
+      })
+      .withFailureHandler(err => {
+        alert("Error al volver: " + err.message);
+      })
+      .getBaseUrl();
+  }
+
+
+  function buscarDocenteNombre() {
+    const apellido = document.getElementById("apellidoBusqueda").value;
+
+    google.script.run
+      .withSuccessHandler(mostrarDocentes)
+      .buscarDocentesPorApellido(apellido);
+  }
+
+  function mostrarDocentes(docentes) {
+    const div = document.getElementById("listaDocentes");
+    div.innerHTML = "";
+
+    if (docentes.length === 0) {
+      div.innerHTML = "<p>No se encontraron docentes.</p>";
+      return;
+    }
+
+    docentes.forEach(d => {
+      const btn = document.createElement("button");
+      btn.textContent = d.nombreCompleto;
+      btn.className = "btn-docente";
+      btn.onclick = () => cargarAlumnos(d.nombreCompleto);
+      div.appendChild(btn);
+    });
+  }
+
+  function cargarAlumnos(nombreDocente) {
+    docenteSeleccionado = nombreDocente;
+
+    google.script.run
+      .withSuccessHandler(alumnos => {
+        alumnosActuales = alumnos;
+        mostrarAlumnos(alumnos);
+      })
+      .getAlumnosDeDocente(nombreDocente);
+  }
+
+  function mostrarAlumnos(alumnos) {
+    const div = document.getElementById("tablaAlumnos");
+
+    if (alumnos.length === 0) {
+      div.innerHTML = "Este docente no tiene alumnos asignados.";
+      return;
+    }
+
+    let html = "<table border='1' cellpadding='5'>";
+    html += "<tr><th>Apellido</th><th>Nombre</th><th>Año</th><th>División</th><th>Turno</th><th>Especialidad</th></tr>";
+
+    alumnos.forEach(a => {
+      html += `<tr>
+        <td>${a.apellido}</td>
+        <td>${a.nombre}</td>
+        <td>${a.anio}</td>
+        <td>${a.division}</td>
+        <td>${a.turno}</td>
+        <td>${a.especialidad}</td>
+      </tr>`;
+    });
+
+    html += "</table>";
+
+    div.innerHTML = html;
+  }
+
+  function enviarEmailListado() {
+  const email = document.getElementById("emailDestino").value;
+  const msgDiv = document.getElementById("msgEmail");
+
+  if (!email) {
+    msgDiv.innerText = "Debe ingresar un email.";
+    return;
+  }
+
+  if (!docenteSeleccionado) {
+    msgDiv.innerText = "Debe seleccionar un docente primero.";
+    return;
+  }
+
+  if (alumnosActuales.length === 0) {
+    msgDiv.innerText = "No hay alumnos para enviar.";
+    return;
+  }
+
+  msgDiv.innerText = "Enviando email...";
+
+  google.script.run
+    .withSuccessHandler(() => {
+      msgDiv.innerText = "Email enviado correctamente.";
+    })
+    .withFailureHandler(err => {
+      msgDiv.innerText = "Error al enviar email.";
+      console.error(err);
+    })
+    .enviarListadoAlumnos(email, docenteSeleccionado, alumnosActuales);
+}
+
+
+</script>
+
+</body>
+</html>

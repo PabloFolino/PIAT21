@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .fila-busqueda {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input, select {
+      padding: 10px;
+      font-size: 15px;
+      min-width: 200px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 14px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125aa0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #1976d2;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+      cursor: pointer;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 15px;
+      min-height: 24px;
+    }
+
+    .error { color: #c62828; font-weight: bold; }
+    .ok { color: #2e7d32; font-weight: bold; }
+
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #1976d2;
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h1>Reasignar alumno a otro PAT</h1>
+
+  <div class="fila-busqueda">
+    <div class="campo">
+      <label>Apellido (texto parcial)</label>
+      <input type="text" id="apellidoBuscar">
+    </div>
+
+    <div class="campo">
+      <label>Turno</label>
+      <select id="turnoBuscar">
+        <option value="">Todos</option>
+        <option value="TD">TD</option>
+        <option value="TN">TN</option>
+      </select>
+    </div>
+
+    <button id="btnBuscar">Buscar</button>
+  </div>
+
+  <div id="resultado"></div>
+
+  <hr>
+  <label><strong>Log de acciones</strong></label>
+  <div id="msg" class="msg"></div>
+
+</div>
+
+<!-- MODAL DOCENTES -->
+<div id="modalDocente" class="modal">
+  <div class="modal-content">
+    <h3>Seleccionar nuevo PAT</h3>
+    <div id="listaDocentes"></div>
+    <div class="modal-buttons">
+      <button onclick="cerrarModalDocente()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<button class="btn-volver" onclick="volverPagina('directivo')">⟵ Volver</button>
+
+<script>
+
+let alumnoSeleccionado = null;
+
+document.addEventListener("DOMContentLoaded", function() {
+
+  document.getElementById("btnBuscar")
+    .addEventListener("click", buscar);
+
+});
+
+/* ================= BUSCAR ALUMNOS ================= */
+
+function buscar() {
+
+  const divMsg = document.getElementById("msg");
+  const divResultado = document.getElementById("resultado");
+
+  divMsg.innerHTML = "Buscando alumnos...";
+  divResultado.innerHTML = "";
+
+  const apellido = document.getElementById("apellidoBuscar").value;
+  const turno = document.getElementById("turnoBuscar").value;
+
+  google.script.run
+    .withSuccessHandler(mostrarResultados)
+    .withFailureHandler(err => {
+      divMsg.innerHTML = "<span class='error'>" + err.message + "</span>";
+    })
+    .buscarAlumnos2(apellido, turno);
+}
+
+/* ================= MOSTRAR RESULTADOS ================= */
+
+function mostrarResultados(data) {
+
+  const divResultado = document.getElementById("resultado");
+  const divMsg = document.getElementById("msg");
+
+  if (!data || data.length === 0) {
+    divMsg.innerHTML = "<span class='error'>No se encontraron alumnos con ese criterio.</span>";
+    return;
+  }
+
+  let html = `
+    <table>
+      <tr>
+        <th>Apellido</th>
+        <th>Nombre</th>
+        <th>DNI</th>
+        <th>Año</th>
+        <th>División</th>
+        <th>Turno</th>
+        <th>Especialidad</th>
+        <th>Docente PAT</th>
+      </tr>
+  `;
+
+  data.forEach(alumno => {
+    html += `
+      <tr onclick="seleccionarAlumno('${alumno.DNI}')">
+        <td>${alumno.Apellido}</td>
+        <td>${alumno.Nombre}</td>
+        <td>${alumno.DNI}</td>
+        <td>${alumno.Anio}</td>
+        <td>${alumno.Division}</td>
+        <td>${alumno.Turno}</td>
+        <td>${alumno.Especialidad}</td>
+        <td>${alumno.Docente}</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  divResultado.innerHTML = html;
+  divMsg.innerHTML = "<span class='ok'>Alumnos encontrados.</span>";
+}
+
+/* ================= SELECCIONAR ALUMNO ================= */
+
+function seleccionarAlumno(dni) {
+
+  console.log("DNIdel alumno seleccionado",dni);
+  
+  alumnoSeleccionado = dni;
+
+  document.getElementById("msg").innerHTML =
+    "Buscando docentes disponibles...";
+
+  google.script.run
+    .withSuccessHandler(mostrarDocentesDisponibles)
+    .withFailureHandler(err => {
+      document.getElementById("msg").innerHTML =
+        "<span class='error'>" + err.message + "</span>";
+    })
+    .getDocentesDisponiblesPorAlumno(dni);
+}
+
+/* ================= MOSTRAR DOCENTES ================= */
+
+function mostrarDocentesDisponibles(data) {
+
+  const divMsg = document.getElementById("msg");
+
+  console.log("Docentes disponibles:", data);
+
+  if (!data || data.length === 0) {
+    divMsg.innerHTML =
+      "<span class='error'>No hay docentes con vacantes disponibles.</span>";
+    return;
+  }
+
+  let html = "";
+
+  data.forEach(doc => {
+
+    html += `
+      <div style="margin-bottom:10px;">
+        <button onclick="confirmarReasignacion(
+          '${doc.nombre}',
+          '${doc.turno}',
+          '${doc.especialidad}'
+        )">
+          <b>${doc.nombre}</b><br>
+          Turno: ${doc.turno} |
+          Especialidad: ${doc.especialidad} |
+          Vacantes: ${doc.vacantes}
+        </button>
+      </div>
+    `;
+  });
+
+  document.getElementById("listaDocentes").innerHTML = html;
+  document.getElementById("modalDocente").style.display = "flex";
+
+  divMsg.innerHTML = "<span class='ok'>Docentes encontrados.</span>";
+}
+
+/* ================= CONFIRMAR REASIGNACION ================= */
+
+function confirmarReasignacion(nombre, turno, especialidad) {
+
+  console.log("Docente seleccionado:", nombre, turno, especialidad);
+  console.log("Alumno seleccionado:", alumnoSeleccionado);
+  
+
+  const nuevoDocente = {
+    nombre: nombre,
+    turno: turno,
+    especialidad: especialidad
+  };
+
+  // ✅ Ver contenido en consola
+  console.log("Nuevo docente:", nuevoDocente);
+
+  document.getElementById("msg").innerHTML =
+    "Reasignando alumno...";
+
+  google.script.run
+    .withSuccessHandler(msg => {
+      document.getElementById("msg").innerHTML =
+        "<span class='ok'>" + msg + "</span>";
+      cerrarModalDocente();
+      buscar();
+    })
+    .withFailureHandler(err => {
+      document.getElementById("msg").innerHTML =
+        "<span class='error'>" + err.message + "</span>";
+    })
+    .reasignarAlumno(alumnoSeleccionado, nuevoDocente);
+}
+
+/* ================= MODAL ================= */
+
+function cerrarModalDocente() {
+  document.getElementById("modalDocente").style.display = "none";
+}
+
+/* ================= VOLVER ================= */
+
+function volverPagina(page) {
+  google.script.run
+    .withSuccessHandler(url => {
+       window.top.location.href = url + "?page=" + page;
+    })
+    .getBaseUrl();
+}
+
+</script>
+
+</body>
+</html>

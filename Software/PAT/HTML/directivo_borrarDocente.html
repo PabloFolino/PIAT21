@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 1100px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 { 
+      text-align:center; 
+      margin-bottom:25px; 
+    }
+
+    .buscador {
+      display:flex;
+      gap:15px;
+      align-items:center;
+      margin-top:10px;
+    }
+
+    .buscador input {
+      flex:1;
+    }
+
+    input {
+      padding:10px;
+      font-size:15px;
+      height:42px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      width:100%;
+      box-sizing:border-box;
+    }
+
+    button {
+      padding:10px 18px;
+      background:#1976d2;
+      color:white;
+      border:none;
+      border-radius:20px;
+      cursor:pointer;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    button:hover { 
+      background:#125aa0; 
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+    }
+
+    th,td {
+      border:1px solid #ddd;
+      padding:8px;
+      text-align:center;
+    }
+
+    th {
+      background:#1976d2;
+      color:white;
+    }
+
+    tr:hover {
+      background:#f1f1f1;
+      cursor:pointer;
+    }
+
+    .msg { 
+      margin-top:20px; 
+      min-height:24px; 
+    }
+
+    .error { 
+      color:#c62828; 
+      font-weight:bold; 
+    }
+
+    .ok { 
+      color:#2e7d32; 
+      font-weight:bold; 
+    }
+
+    .volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .volver:hover {
+      background-color: #125aa0;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h1>Eliminar docente de la base de datos</h1>
+
+  <label>
+    1- Busque el Nombre, Apellido o el DNI del docente <br>
+    --- para saber si esta en la base de datos ---
+  </label>
+
+  <div class="buscador">
+    <input type="text" id="filtroDocente">
+    <button onclick="buscarDocentesGrupo()">Buscar</button>
+  </div>
+
+  <div id="listaPrimera"></div>
+  <hr>
+
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+
+</div>
+
+<button class="volver" onclick="volverPagina('directivo')">&larr; Volver</button>
+
+<div id="modalConfirmacion" style="display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:10000;">
+
+  <div style="background:white;
+  padding:25px;
+  border-radius:8px;
+  width:400px;
+  text-align:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);">
+
+    <p id="textoConfirmacion"></p>
+
+    <div style="margin-top:20px; display:flex; justify-content:space-around;">
+      <button onclick="confirmarSi()">Si</button>
+      <button onclick="cerrarModal()">No</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+  let docenteAEliminar = {};
+
+function buscarDocentesGrupo() {
+  const filtro = document.getElementById("filtroDocente").value;
+
+  document.getElementById("listaPrimera").innerHTML="";
+  document.getElementById("msg").innerHTML = "Buscando docentes...";
+
+  google.script.run
+    .withSuccessHandler(mostrarPrimerListado)
+    .withFailureHandler(err=>{
+      document.getElementById("msg").innerHTML =
+      "<span class='error'>"+err.message+"</span>";
+    })
+    .findDocentes(filtro);
+}
+
+function mostrarPrimerListado(data){
+  if(!data || data.length===0){
+    document.getElementById("msg").innerHTML =
+    "<span class='error'>No se encontraron docentes.</span>";
+    return;
+  }
+
+  let html=`<table>
+  <tr>
+    <th>Apellido y Nombre</th>
+    <th>DNI</th>
+    <th>Turno</th>
+    <th>Alumnos asignados</th>
+    <th>Vacantes</th>
+  </tr>`;
+
+  data.forEach(doc=>{
+    html+=`
+      <tr onclick="confirmarEliminacion('${doc.nombre}','${doc.dni}','${doc.turno}',${doc.asignados})">
+        <td>${doc.nombre}</td>
+        <td>${doc.dni}</td>
+        <td>${doc.turno}</td>
+        <td>${doc.asignados}</td>
+        <td>${doc.vacantes}</td>
+      </tr>`;
+  });
+
+  html+="</table>";
+
+  document.getElementById("listaPrimera").innerHTML=html;
+  document.getElementById("msg").innerHTML="<span class='ok'>Haga click en el docente que desea eliminar.</span>";
+}
+
+function confirmarEliminacion(nombre,dni,turno,asignados){
+
+  if(asignados !== 0){
+    document.getElementById("msg").innerHTML =
+    "<span class='error'>No se puede eliminar el docente porque tiene alumnos asignados.</span>";
+    return;
+  }
+
+  docenteAEliminar = { nombre, dni, turno };
+
+  document.getElementById("textoConfirmacion").innerText =
+    `¿Desea eliminar al docente ${nombre} del Turno ${turno}?`;
+
+  document.getElementById("modalConfirmacion").style.display = "flex";
+}
+
+
+function cerrarModal(){
+  document.getElementById("modalConfirmacion").style.display = "none";
+}
+
+function confirmarSi(){
+
+  cerrarModal();
+
+  document.getElementById("msg").innerHTML = "Eliminando docente...";
+
+  google.script.run
+    .withSuccessHandler(msg=>{
+      document.getElementById("msg").innerHTML =
+      "<span class='ok'>"+msg+"</span>";
+      buscarDocentesGrupo();
+    })
+    .withFailureHandler(err=>{
+      document.getElementById("msg").innerHTML =
+      "<span class='error'>"+err.message+"</span>";
+    })
+    .eliminarDocente(docenteAEliminar.dni,docenteAEliminar.turno);
+}
+
+function volverPagina(page) {
+  google.script.run
+    .withSuccessHandler(url => {
+      window.top.location.href = url + "?page=" + page;
+    })
+    .withFailureHandler(err => {
+      alert("Error al volver: " + err.message);
+    })
+    .getBaseUrl();
+}
+
+</script>
+
+</body>
+</html>

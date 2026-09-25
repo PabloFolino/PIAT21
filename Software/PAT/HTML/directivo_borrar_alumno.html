@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .fila-busqueda {
+      display: flex;
+      gap: 20px;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .campo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    input, select {
+      padding: 10px;
+      font-size: 15px;
+      min-width: 200px;
+    }
+
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      background: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125aa0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #1976d2;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f1f1f1;
+      cursor: pointer;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 15px;
+    }
+
+    .error { color: #c62828; font-weight: bold; }
+    .ok { color: #2e7d32; font-weight: bold; }
+
+    /* BOTON VOLVER */
+    .btn-volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #1976d2;
+      color: white;
+      border-radius: 999px;
+      padding: 12px 18px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .btn-volver:hover {
+      background-color: #125aa0;
+    }
+
+    /* MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 350px;
+    }
+
+    .modal-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h1>Eliminar alumno</h1>
+
+  <div class="fila-busqueda">
+    <div class="campo">
+      <label>Apellido (texto parcial)</label>
+      <input type="text" id="apellidoBuscar">
+    </div>
+
+    <div class="campo">
+      <label>Turno</label>
+      <select id="turnoBuscar">
+        <option value="">Todos</option>
+        <option value="TD">TD</option>
+        <option value="TN">TN</option>
+      </select>
+    </div>
+
+    <button onclick="buscar()">Buscar</button>
+  </div>
+
+  <div id="resultado"></div>
+  
+  <hr class="divider">
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <p>¿Está seguro de eliminar este legajo?</p>
+    <div class="modal-buttons">
+      <button onclick="confirmarEliminar()">Sí</button>
+      <button onclick="cerrarModal()">No</button>
+    </div>
+  </div>
+</div>
+
+<button class="btn-volver" onclick="volverPagina('directivo')">⟵ Volver</button>
+
+<script>
+
+let alumnoSeleccionado = null;
+
+/* Buscar alumnos */
+function buscar() {
+
+  const divMsg = document.getElementById("msg");
+
+  // Mostrar mensaje inicial
+  divMsg.innerHTML = "<span>Buscando alumnos...</span>";
+
+  const apellido = document.getElementById("apellidoBuscar").value;
+  const turno = document.getElementById("turnoBuscar").value;
+
+  google.script.run
+    .withSuccessHandler(mostrarResultados)
+    .withFailureHandler(err => {
+      divMsg.innerHTML = "<span class='error'>" + err.message + "</span>";
+    })
+    .buscarAlumnos2(apellido, turno);
+}
+
+/* Mostrar resultados */
+function mostrarResultados(data) {
+
+  const divResultado = document.getElementById("resultado");
+  const divMsg = document.getElementById("msg");
+
+  if (!data || data.length === 0) {
+    divResultado.innerHTML = "";
+    divMsg.innerHTML = "<span class='error'>No se encontraron alumnos con ese criterio.</span>";
+    return;
+  }
+
+  let html = `
+    <table>
+      <tr>
+        <th>Apellido</th>
+        <th>Nombre</th>
+        <th>DNI</th>
+        <th>Año</th>
+        <th>División</th>
+        <th>Turno</th>
+        <th>Especialidad</th>
+        <th>Docente PAT</th>
+      </tr>
+  `;
+
+  data.forEach(alumno => {
+    html += `
+      <tr onclick="seleccionarAlumno('${alumno.DNI}')">
+        <td>${alumno.Apellido}</td>
+        <td>${alumno.Nombre}</td>
+        <td>${alumno.DNI}</td>
+        <td>${alumno.Anio}</td>
+        <td>${alumno.Division}</td>
+        <td>${alumno.Turno}</td>
+        <td>${alumno.Especialidad}</td>
+        <td>${alumno.Docente}</td>
+      </tr>
+    `;
+  });
+
+  html += "</table>";
+
+  divResultado.innerHTML = html;
+  divMsg.innerHTML = "<span class='ok'>Alumnos encontrados.</span>";
+}
+function seleccionarAlumno(dni) {
+  alumnoSeleccionado = dni;
+  document.getElementById("modal").style.display = "flex";
+}
+
+function cerrarModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function confirmarEliminar() {
+
+  google.script.run
+    .withSuccessHandler(msg => {
+      document.getElementById("msg").innerHTML = "<span class='ok'>" + msg + "</span>";
+      cerrarModal();
+      buscar();
+    })
+    .withFailureHandler(err => {
+      document.getElementById("msg").innerHTML = "<span class='error'>" + err.message + "</span>";
+    })
+    .eliminarAlumno(alumnoSeleccionado);
+}
+
+/* Volver */
+function volverPagina(page) {
+  google.script.run
+    .withSuccessHandler(url => {
+       window.top.location.href = url + "?page=" + page;
+    })
+    .getBaseUrl();
+}
+
+</script>
+
+</body>
+</html>

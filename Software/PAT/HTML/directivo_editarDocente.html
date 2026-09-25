@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .box {
+      max-width: 1100px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    }
+
+    h1 { 
+      text-align:center; 
+      margin-bottom:25px; 
+    }
+
+    .buscador {
+      display:flex;
+      gap:15px;
+      align-items:center;
+      margin-top:10px;
+    }
+
+    .buscador input {
+      flex:1;
+    }
+
+    #formularioDocente {
+      margin-top:20px;
+      display:grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap:20px 40px;
+    }
+
+    .campo {
+      display:flex;
+      flex-direction:column;
+    }
+
+    .campo label {
+      font-weight:600;
+      margin-bottom:6px;
+    }
+
+    input, select {
+      padding:10px;
+      font-size:15px;
+      height:42px;
+      border:1px solid #ccc;
+      border-radius:6px;
+      width:100%;
+      box-sizing:border-box;
+    }
+
+    input:disabled {
+      background:#e9ecef;
+      color:#555;
+    }
+
+    button {
+      padding:10px 18px;
+      background:#1976d2;
+      color:white;
+      border:none;
+      border-radius:20px;
+      cursor:pointer;
+      font-size:14px;
+      white-space:nowrap;
+    }
+
+    button:hover { 
+      background:#125aa0; 
+    }
+
+    .guardar-container{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:25px;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      margin-top:20px;
+    }
+
+    th,td {
+      border:1px solid #ddd;
+      padding:8px;
+      text-align:center;
+    }
+
+    th {
+      background:#1976d2;
+      color:white;
+    }
+
+    tr:hover {
+      background:#f1f1f1;
+      cursor:pointer;
+    }
+
+    .msg { 
+      margin-top:20px; 
+      min-height:24px; 
+    }
+
+    .error { 
+      color:#c62828; 
+      font-weight:bold; 
+    }
+
+    .ok { 
+      color:#2e7d32; 
+      font-weight:bold; 
+    }
+
+    .volver {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    .volver:hover {
+      background-color: #125aa0;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <h1>Edición de docente</h1>
+
+  <label>
+    1- Busque el Nombre, Apellido o el DNI del docente
+  </label>
+
+  <div class="buscador">
+    <input type="text" id="filtroDocente">
+    <button onclick="buscarDocentesGrupo()">Buscar</button>
+  </div>
+
+  <div id="listaPrimera"></div>
+
+  <hr>
+
+  <label>2- Editar datos</label>
+
+  <div id="formularioDocente">
+
+    <div class="campo">
+      <label>Apellido y Nombre</label>
+      <input type="text" id="apellidoNombre">
+    </div>
+
+    <div class="campo">
+      <label>Email</label>
+      <input type="email" id="emailDocente">
+    </div>
+
+    <div class="campo">
+      <label>DNI</label>
+      <input type="number" id="dniDocente" disabled>
+    </div>
+
+    <div class="campo">
+      <label>Ciclos</label>
+      <input type="text" id="ciclosDocente">
+    </div>
+
+    <div class="campo">
+      <label>Turno</label>
+      <select id="turnoDocente" disabled>
+        <option value="TD">TD</option>
+        <option value="TN">TN</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>Horas</label>
+      <input type="number" id="horasDocente">
+    </div>
+
+    <div class="campo">
+      <label>Horas sin Alumnos</label>
+      <input type="number" id="horasSinAlumnos">
+    </div>
+
+    <div class="campo">
+      <label>Máx Alumnos</label>
+      <input type="number" id="maxAlumnos">
+    </div>
+
+    <div class="campo">
+      <label>Máximo teórico</label>
+      <input type="text" id="maxTeorico" disabled>
+    </div>
+
+    <div class="campo">
+      <label>Alumnos asignados</label>
+      <input type="text" id="alumnosAsignados" disabled>
+    </div>
+
+    <div class="campo">
+      <label>Vacantes Disponibles</label>
+      <input type="text" id="vacantesDisponibles" disabled>
+    </div>
+
+  </div>
+
+  <div class="guardar-container">
+    <button onclick="guardarCambios()">Guardar Cambios</button>
+  </div>
+
+  <hr>
+
+  <label>Log de acciones</label>
+  <div id="msg" class="msg"></div>
+
+</div>
+
+<button class="volver" onclick="volverPagina('directivo')">&larr; Volver</button>
+
+<script>
+
+function buscarDocentesGrupo() {
+
+  document.getElementById("listaPrimera").innerHTML=" ";
+  limpiarCampos();
+
+  const filtro = document.getElementById("filtroDocente").value;
+  document.getElementById("msg").innerHTML="Buscando docentes...";
+
+  google.script.run
+    .withSuccessHandler(mostrarListado)
+    .withFailureHandler(err=>{
+      document.getElementById("msg").innerHTML="<span class='error'>"+err.message+"</span>";
+    })
+    .findDocentes(filtro);
+}
+
+function mostrarListado(data){
+
+  if(!data || data.length===0){
+    document.getElementById("msg").innerHTML="<span class='error'>No se encontraron docentes.</span>";
+    return;
+  }
+
+  let html=`<table>
+  <tr>
+    <th>Apellido y Nombre</th>
+    <th>DNI</th>
+    <th>Turno</th>
+    <th>Alumnos asignados</th>
+    <th>Vacantes</th>
+  </tr>`;
+
+  data.forEach(doc=>{
+    html+=`
+      <tr onclick="cargarDocente('${doc.dni}','${doc.turno}')">
+        <td>${doc.nombre}</td>
+        <td>${doc.dni}</td>
+        <td>${doc.turno}</td>
+        <td>${doc.asignados}</td>
+        <td>${doc.vacantes}</td>
+      </tr>`;
+  });
+
+  html+="</table>";
+
+  document.getElementById("listaPrimera").innerHTML=html;
+  document.getElementById("msg").innerHTML="<span class='ok'>Seleccione un docente para editar.</span>";
+}
+
+function cargarDocente(dni, turno){
+
+  document.getElementById("msg").innerHTML="Cargando datos...";
+
+  google.script.run
+    .withSuccessHandler(doc=>{
+      document.getElementById("apellidoNombre").value = doc.apellidoNombre;
+      document.getElementById("emailDocente").value = doc.email;
+      document.getElementById("dniDocente").value = doc.dni;
+      document.getElementById("ciclosDocente").value = doc.ciclos;
+      document.getElementById("turnoDocente").value = doc.turno;
+      document.getElementById("horasDocente").value = doc.horas;
+      document.getElementById("horasSinAlumnos").value = doc.horasSin;
+      document.getElementById("maxAlumnos").value = doc.maxAlumnos;
+      document.getElementById("maxTeorico").value = doc.maxTeorico;
+      document.getElementById("alumnosAsignados").value = doc.alumnosAsignados;
+      document.getElementById("vacantesDisponibles").value = doc.vacantes;
+
+      document.getElementById("msg").innerHTML="<span class='ok'>Docente cargado.</span>";
+    })
+    .withFailureHandler(err=>{
+      document.getElementById("msg").innerHTML="<span class='error'>"+err.message+"</span>";
+    })
+    .obtenerDocente(dni,turno);
+}
+
+function limpiarCampos(){
+  document.getElementById("apellidoNombre").value = " ";
+  document.getElementById("emailDocente").value = " ";
+  document.getElementById("dniDocente").value = " ";
+  document.getElementById("ciclosDocente").value = " ";
+  document.getElementById("turnoDocente").value = " ";
+  document.getElementById("horasDocente").value = " ";
+  document.getElementById("horasSinAlumnos").value = " ";
+  document.getElementById("maxAlumnos").value = " ";
+  document.getElementById("maxTeorico").value = " ";
+  document.getElementById("alumnosAsignados").value = " ";
+  document.getElementById("vacantesDisponibles").value = " ";
+
+
+} 
+
+function guardarCambios(){
+
+  const docente={
+    apellidoNombre: document.getElementById("apellidoNombre").value,
+    email: document.getElementById("emailDocente").value,
+    dni: document.getElementById("dniDocente").value,
+    ciclos: document.getElementById("ciclosDocente").value,
+    turno: document.getElementById("turnoDocente").value,
+    horas: document.getElementById("horasDocente").value,
+    horasSin: document.getElementById("horasSinAlumnos").value,
+    maxAlumnos: document.getElementById("maxAlumnos").value
+  };
+
+  document.getElementById("msg").innerHTML="Guardando cambios...";
+
+  google.script.run
+    .withSuccessHandler(msg=>{
+      document.getElementById("msg").innerHTML="<span class='ok'>"+msg+"</span>";
+    })
+    .withFailureHandler(err=>{
+      document.getElementById("msg").innerHTML="<span class='error'>"+err.message+"</span>";
+    })
+    .actualizarDocente(docente);
+}
+
+function volverPagina(page) {
+  google.script.run
+    .withSuccessHandler(url => {
+      window.top.location.href = url + "?page=" + page;
+    })
+    .getBaseUrl();
+}
+
+</script>
+
+</body>
+</html>
